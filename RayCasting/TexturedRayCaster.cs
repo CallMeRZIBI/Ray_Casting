@@ -76,6 +76,73 @@ namespace RayCasting.RayCasting
             // Timing for frame time
             _timer.Start();
 
+            // Floor Casting
+            for(int y = 0; y < _renderHeight; y++)
+            {
+                // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
+                float rayDirX0 = (float)(_dirX - _planeX);
+                float rayDirY0 = (float)(_dirY - _planeY);
+                float rayDirX1 = (float)(_dirX + _planeX);
+                float rayDirY1 = (float)(_dirY + _planeY);
+
+                // Current y position compared to the center of the screen (the horizon)
+                int p = y - _renderHeight / 2;
+
+                // Vertical position of the camera
+                float posZ = 0.5f * (float)_renderHeight;
+
+                // Horizontal distance from the camera to the floor for hte current row
+                // 0.5 is the z position exactly in the middle between floor and ceiling
+                float rowDistance = posZ / p;
+
+                // Calculate the real world step vector we have to add for each x (parallel to camera plane)
+                // adding step by step avoids multiplications with a weight in the inner loop
+                float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / _renderWidth;
+                float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / _renderWidth;
+
+                // Real world coordinates of the leftmost column, this will be updated as we step to the right
+                float floorX = (float)_posX + rowDistance * rayDirX0;
+                float floorY = (float)_posY + rowDistance * rayDirY0;
+
+                for(int x = 0; x < _renderWidth; ++x)
+                {
+                    // The cell coord is simply got from the integer parts of floorX and floorY
+                    int cellX = (int)(floorX);
+                    int cellY = (int)(floorY);
+
+                    // Get the texture coordinate from the fractional part
+                    int tx = (int)(_texWidth * (floorX - cellX)) & (_texWidth - 1);
+                    int ty = (int)(_texHeight * (floorY - cellY)) & (_texHeight - 1);
+
+                    floorX += floorStepX;
+                    floorY += floorStepY;
+
+                    // Choose texture and draw the pixel
+                    int floorTexture = 6;
+                    int ceilingTexture = 3;
+                    byte[] color = new byte[4];
+
+                    // Floor
+                    _texture[floorTexture].GetPixels()[_texWidth * ty + tx].CopyTo(color, 0);
+                    color[0] = (byte)(color[0] / (byte)1.5);
+                    color[1] = (byte)(color[1] / (byte)1.5);
+                    color[2] = (byte)(color[2] / (byte)1.5);
+                    _buffer[y, x, 0] = color[0];
+                    _buffer[y, x, 1] = color[1];
+                    _buffer[y, x, 2] = color[2];
+
+                    // Ceiling (symmetrical, at _renderHeight - y - 1 instead of y)
+                    _texture[ceilingTexture].GetPixels()[_texWidth * ty + tx].CopyTo(color, 0);
+                    color[0] = (byte)(color[0] / (byte)1.5);
+                    color[1] = (byte)(color[1] / (byte)1.5);
+                    color[2] = (byte)(color[2] / (byte)1.5);
+                    _buffer[_renderHeight - y - 1, x, 0] = color[0];
+                    _buffer[_renderHeight - y - 1, x, 1] = color[1];
+                    _buffer[_renderHeight - y - 1, x, 2] = color[2];
+                }
+            }
+
+            // Wall Ray Casting
             for (int x = 0; x < _renderWidth; x++)
             {
                 // Calculate ray position and direction
@@ -180,14 +247,6 @@ namespace RayCasting.RayCasting
                 // Starting texture coordinate
                 double texPos = (drawStart - _renderHeight / 2 + lineHeight / 2) * step;
 
-                // Drawing before the line
-                for(int i = 0; i < drawStart; i++)
-                {
-                    _buffer[i, x, 0] = (byte)255;
-                    _buffer[i, x, 1] = (byte)0;
-                    _buffer[i, x, 2] = (byte)0;
-                }
-
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -207,14 +266,6 @@ namespace RayCasting.RayCasting
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
-                }
-
-                // Drawing after the line
-                for(int i = drawEnd; i < _renderHeight; i++)
-                {
-                    _buffer[i, x, 0] = (byte)0;
-                    _buffer[i, x, 1] = (byte)255;
-                    _buffer[i, x, 2] = (byte)0;
                 }
             }
 
