@@ -91,9 +91,12 @@ namespace RayCasting.RayCasting
                 double sideDistX;
                 double sideDistY;
 
+                // This was causing fish eye
+                //double deltaDistX = Math.Sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
+                //double deltaDistY = Math.Sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
                 // Length of ray from one X or Y-side to next X or Y-side
-                double deltaDistX = Math.Sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
-                double deltaDistY = Math.Sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
+                double deltaDistX = Math.Abs(1 / rayDirX);
+                double deltaDistY = Math.Abs(1 / rayDirY);
                 double perpWallDist;
 
                 // What direction to step in X or Y-direction (either +1 or -1)
@@ -185,7 +188,6 @@ namespace RayCasting.RayCasting
                     _buffer[i, x, 2] = (byte)0;
                 }
 
-                // TODO: The walls are rendering normally but the texture is doing weird things
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
