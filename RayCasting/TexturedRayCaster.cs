@@ -51,7 +51,7 @@ namespace RayCasting.RayCasting
             _texture = new List<Texture>();
             _texWidth = textureWidth;
             _texHeight = textureHeight;
-            GenerateTextures();
+            //GenerateTextures();
 
             _timer = new Stopwatch();
             _deltaTime = 0;
@@ -185,14 +185,15 @@ namespace RayCasting.RayCasting
                     _buffer[i, x, 2] = (byte)0;
                 }
 
+                // TODO: The walls are rendering normally but the texture is doing weird things
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
                     // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
                     int texY = (int)texPos & (_texHeight - 1);
                     texPos += step;
-                    //UInt32 color = _texture[texNum][_texHeight * texY + texX];
-                    byte[] color = _texture[texNum].GetPixels()[_texHeight * texY + texX];
+                    byte[] color = new byte[4];
+                    _texture[texNum].GetPixels()[_texHeight * texY + texX].CopyTo(color, 0);
                     // Make color darker for Y-sides: R, G and B byte each divided through two
                     if (side == 1)
                     {
@@ -200,7 +201,6 @@ namespace RayCasting.RayCasting
                         color[1] = (byte)(color[1] / (byte)2);
                         color[2] = (byte)(color[2] / (byte)2);
                     }
-                    // TODO: Okey, something is working but what the fuck is with it is mistery to me
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
@@ -261,16 +261,19 @@ namespace RayCasting.RayCasting
             }
         }
 
-        private void GenerateTextures()
+        // Loading Textures from path and setting the size in constructor manually
+        public void LoadTexturesFromPaths(string[] paths)
         {
-            _texture.Add(new Texture("./textures/eagle.png"));
-            _texture.Add(new Texture("./textures/redbrick.png"));
-            _texture.Add(new Texture("./textures/purplestone.png"));
-            _texture.Add(new Texture("./textures/greystone.png"));
-            _texture.Add(new Texture("./textures/bluestone.png"));
-            _texture.Add(new Texture("./textures/mossy.png"));
-            _texture.Add(new Texture("./textures/wood.png"));
-            _texture.Add(new Texture("./textures/colorstone.png"));
+            for(int i = 0; i < paths.Length; i++) 
+            {
+                _texture.Add(new Texture(paths[i]));            
+            }
+        }
+
+        // Preloading Textures outside of RayCaster so you can give RayCaster the size of textures if you don't know it
+        public void LoadTextures(List<Texture> textures)
+        {
+            _texture = textures;
         }
 
         public byte[,,] GetRawBuffer()
@@ -278,6 +281,7 @@ namespace RayCasting.RayCasting
             return _buffer;
         }
 
+        // NOT WORKING!!!
         // I have something wrong with the i * something etc. so it returns just 0
         private static byte[] ConvertTo1D(byte[,,] input)
         {

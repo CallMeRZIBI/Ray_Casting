@@ -137,6 +137,52 @@ namespace RayCasting
 
             int TexHandle = 0;
 
+            int[,] TexturedWorldMap =
+{
+                { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,8,0,3,0,0,0,1},
+                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+                { 1,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,4,4,0,1},
+                { 1,5,5,5,5,5,5,5,5,0,0,0,0,0,4,0,0,0,0,0,0,4,0,1},
+                { 1,5,0,4,0,0,0,0,5,0,0,0,0,0,4,0,4,4,4,4,0,4,0,1},
+                { 1,5,0,0,0,0,6,0,5,0,0,0,0,0,4,0,4,0,0,4,0,4,0,1},
+                { 1,5,0,5,0,0,0,0,5,0,0,0,0,0,4,0,4,4,0,4,0,4,0,1},
+                { 1,5,0,5,5,5,5,5,5,0,0,0,0,0,4,0,0,0,0,4,0,4,0,1},
+                { 1,5,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,0,4,0,1},
+                { 1,5,5,5,5,5,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,4,0,1},
+                { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+            };
+
+            string[] TexPaths =
+            {
+                "./textures/eagle.png",
+                "./textures/redbrick.png",
+                "./textures/purplestone.png",
+                "./textures/greystone.png",
+                "./textures/bluestone.png",
+                "./textures/mossy.png",
+                "./textures/wood.png",
+                "./textures/colorstone.png"
+            };
+
+            List<Texture> textures = new List<Texture>();
+            foreach(string path in TexPaths)
+            {
+                textures.Add(new Texture(path));
+            }
+
             float[] vertices =
             {
                 //Position          Texture coordinates
@@ -165,7 +211,7 @@ namespace RayCasting
             GameWindow window2 = new GameWindow(gws2, nws2);
 
             // Setting up textured RayCasting
-            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, 64, 64, renderingScale);
+            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, textures[0].Width, textures[0].Height, renderingScale);
 
             ShaderProgram shaderProgram2 = new ShaderProgram(); 
             window2.Load += () =>
@@ -191,7 +237,8 @@ namespace RayCasting
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indicies.Length * sizeof(uint), indicies, BufferUsageHint.StaticDraw);
 
-                RCaster.CreateMap(worldMap, posX, posY);
+                RCaster.LoadTextures(textures);
+                RCaster.CreateMap(TexturedWorldMap, posX, posY);
             };
 
             byte[,,] data;

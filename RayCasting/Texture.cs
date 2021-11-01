@@ -12,10 +12,15 @@ namespace RayCasting.RayCasting
     class Texture
     {
         private readonly List<byte[]> _pixels;
+        public int Width;
+        public int Height;
 
         public Texture(string path)
         {
             Image<Rgba32> image = Image.Load<Rgba32>(path);
+
+            Width = image.Width;
+            Height = image.Height;
 
             // Flipping the image array vertically
             image.Mutate(x => x.Flip(FlipMode.Vertical));
