@@ -175,7 +175,7 @@ namespace RayCasting.RayCasting
                 // How much to increase the texture coordinate per screen pixel
                 double step = 1.0 * _texHeight / lineHeight;
                 // Starting texture coordinate
-                double texPos = (drawStart - hit / 2 + lineHeight / 2) * step;
+                double texPos = (drawStart - _renderHeight / 2 + lineHeight / 2) * step;
 
                 // Drawing before the line
                 for(int i = 0; i < drawStart; i++)
@@ -192,6 +192,7 @@ namespace RayCasting.RayCasting
                     // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
                     int texY = (int)texPos & (_texHeight - 1);
                     texPos += step;
+                    // Copying the colors instead of allocating them cause that would just refer to the original image and mess it up
                     byte[] color = new byte[4];
                     _texture[texNum].GetPixels()[_texHeight * texY + texX].CopyTo(color, 0);
                     // Make color darker for Y-sides: R, G and B byte each divided through two
