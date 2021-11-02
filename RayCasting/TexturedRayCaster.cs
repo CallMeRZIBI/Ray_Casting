@@ -14,17 +14,25 @@ namespace RayCasting.RayCasting
         private readonly int _renderWidth;
         private readonly int _renderHeight;
 
-        private readonly int _texWidth; // Tex is short for texture
-        private readonly int _texHeight; // Tex is short for texture
         private readonly int _mapWidth;
         private readonly int _mapHeight;
 
         private byte[,,] _buffer;
+
+        // 1D Zbuffer
+        private double[] _ZBuffer;
+
         private List<Texture> _texture;
+        private List<Sprite> _sprites;
+
+        // Arrays used to sort the sprites
+        private int[] _spriteOrder;
+        private double[] _spriteDistance;
 
         // Map must have boundings otherwise the ray would just fly away exactly it will get out of the bounds of the array
         private  int[,] _map;
 
+        // Timing *will be deleted
         private readonly Stopwatch _timer;
         private double _deltaTime;
 
@@ -38,8 +46,9 @@ namespace RayCasting.RayCasting
 
         private double _moveSpeed;
         private double _rotSpeed;
+        private readonly bool _DrawFloorCeiling;
 
-        public TexturedRayCaster(int screenWidth, int screenHeight, int textureWidth, int textureHeight, float rederingScale = 1)
+        public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1, bool DrawFloorCeiling = false)
         {
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
@@ -48,16 +57,16 @@ namespace RayCasting.RayCasting
             _renderHeight = (int)(_screenHeight * rederingScale);
 
             _buffer = new byte[_renderHeight, _renderWidth, 3]; // Y-coordinate first because it works per scanline
+            _ZBuffer = new double[_renderWidth];
             _texture = new List<Texture>();
-            _texWidth = textureWidth;
-            _texHeight = textureHeight;
-            //GenerateTextures();
 
             _timer = new Stopwatch();
             _deltaTime = 0;
 
             _moveSpeed = 0;
             _rotSpeed = 0;
+
+            _DrawFloorCeiling = DrawFloorCeiling;
         }
 
         public void CreateMap(int[,] map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
@@ -77,7 +86,33 @@ namespace RayCasting.RayCasting
             _timer.Start();
 
             // Floor Casting
-            for(int y = 0; y < _renderHeight; y++)
+            if(_DrawFloorCeiling) CastFloor();
+
+            // Wall Ray Casting
+            CastWall();
+
+            // Sprite casting
+            // Take a look at it
+            CastSprites();
+
+            // TODO: Let user time game loop because he will also have some own calculations
+            // speed modifiers
+            _moveSpeed = _deltaTime * 5; // Constant value is xd
+            _rotSpeed = _deltaTime * 3; // Constant value is xd
+
+            // timing for input and FPS counter
+            _timer.Stop();
+            _deltaTime = _timer.Elapsed.TotalMilliseconds / 1000;
+            _timer.Reset();
+
+            // Moving
+            Move(W_Down, A_Down, S_Down, D_Down);
+        }
+
+        // Floor Casting
+        private void CastFloor()
+        {
+            for (int y = 0; y < _renderHeight; y++)
             {
                 // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
                 float rayDirX0 = (float)(_dirX - _planeX);
@@ -104,45 +139,54 @@ namespace RayCasting.RayCasting
                 float floorX = (float)_posX + rowDistance * rayDirX0;
                 float floorY = (float)_posY + rowDistance * rayDirY0;
 
-                for(int x = 0; x < _renderWidth; ++x)
+                for (int x = 0; x < _renderWidth; ++x)
                 {
+                    // Choose the floor and ceiling texture
+                    int ceilingTexture = 6;
+                    int floorTexture = 3;
+                    int ceilingTexWidth = _texture[ceilingTexture].Width;
+                    int ceilingTexHeight = _texture[ceilingTexture].Height;
+                    int floorTexWidth = _texture[floorTexture].Width;
+                    int floorTexHeight = _texture[floorTexture].Height;
+
                     // The cell coord is simply got from the integer parts of floorX and floorY
                     int cellX = (int)(floorX);
                     int cellY = (int)(floorY);
 
+                    // Floor
                     // Get the texture coordinate from the fractional part
-                    int tx = (int)(_texWidth * (floorX - cellX)) & (_texWidth - 1);
-                    int ty = (int)(_texHeight * (floorY - cellY)) & (_texHeight - 1);
+                    int tx = (int)(ceilingTexWidth * (floorX - cellX)) & (ceilingTexWidth - 1);
+                    int ty = (int)(ceilingTexHeight * (floorY - cellY)) & (ceilingTexHeight - 1);
 
                     floorX += floorStepX;
                     floorY += floorStepY;
 
-                    // Choose texture and draw the pixel
-                    int floorTexture = 6;
-                    int ceilingTexture = 3;
+                    // Draw the pixel
                     byte[] color = new byte[4];
 
                     // Floor
-                    _texture[floorTexture].GetPixels()[_texWidth * ty + tx].CopyTo(color, 0);
-                    color[0] = (byte)(color[0] / (byte)1.5);
-                    color[1] = (byte)(color[1] / (byte)1.5);
-                    color[2] = (byte)(color[2] / (byte)1.5);
+                    _texture[ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
 
+                    // Ceiling
+                    // Get the texture coordinate from the fractional part
+                    tx = (int)(floorTexWidth * (floorX - cellX)) & (floorTexWidth - 1);
+                    ty = (int)(floorTexHeight * (floorY - cellY)) & (floorTexHeight - 1);
+
                     // Ceiling (symmetrical, at _renderHeight - y - 1 instead of y)
-                    _texture[ceilingTexture].GetPixels()[_texWidth * ty + tx].CopyTo(color, 0);
-                    color[0] = (byte)(color[0] / (byte)1.5);
-                    color[1] = (byte)(color[1] / (byte)1.5);
-                    color[2] = (byte)(color[2] / (byte)1.5);
+                    _texture[floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
                     _buffer[_renderHeight - y - 1, x, 0] = color[0];
                     _buffer[_renderHeight - y - 1, x, 1] = color[1];
                     _buffer[_renderHeight - y - 1, x, 2] = color[2];
                 }
             }
+        }
 
-            // Wall Ray Casting
+        // Casting walls
+        private void CastWall()
+        {
             for (int x = 0; x < _renderWidth; x++)
             {
                 // Calculate ray position and direction
@@ -174,7 +218,7 @@ namespace RayCasting.RayCasting
                 int side = 0; // Was a NS or a EW wall hit?
 
                 // Calculate step and initial sideDist
-                if(rayDirX < 0)
+                if (rayDirX < 0)
                 {
                     stepX = -1;
                     sideDistX = (_posX - mapX) * deltaDistX;
@@ -184,7 +228,7 @@ namespace RayCasting.RayCasting
                     stepX = 1;
                     sideDistX = (mapX + 1.0 - _posX) * deltaDistX;
                 }
-                if(rayDirY < 0)
+                if (rayDirY < 0)
                 {
                     stepY = -1;
                     sideDistY = (_posY - mapY) * deltaDistY;
@@ -196,10 +240,10 @@ namespace RayCasting.RayCasting
                 }
 
                 // Perform DDA
-                while(hit == 0)
+                while (hit == 0)
                 {
                     // Jump to next map square, either in X-direction, or in Y-direction
-                    if(sideDistX < sideDistY)
+                    if (sideDistX < sideDistY)
                     {
                         sideDistX += deltaDistX;
                         mapX += stepX;
@@ -217,7 +261,7 @@ namespace RayCasting.RayCasting
 
                 // Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
                 if (side == 0) perpWallDist = sideDistX - deltaDistX;
-                else           perpWallDist = sideDistY - deltaDistY;
+                else perpWallDist = sideDistY - deltaDistY;
 
                 // Calculate height of line to draw on screen
                 int lineHeight = (int)(_renderHeight / perpWallDist);
@@ -230,32 +274,54 @@ namespace RayCasting.RayCasting
 
                 // Texturing calculations
                 int texNum = _map[mapX, mapY] - 1; // 1 subtracted from it so that texture 0 can be used
+                int HitTexWidth = _texture[texNum].Width;
+                int HitTexHeight = _texture[texNum].Height;
 
                 // Calculate value of wallX
                 double wallX; // where exactly the wall was hit
                 if (side == 0) wallX = _posY + perpWallDist * rayDirY;
-                else           wallX = _posX + perpWallDist * rayDirX;
+                else wallX = _posX + perpWallDist * rayDirX;
                 wallX -= Math.Floor(wallX);
 
                 // X coordinate on the texture
-                int texX = (int)(wallX * (double)_texWidth);
-                if (side == 0 && rayDirX > 0) texX = _texWidth - texX - 1;
-                if (side == 1 && rayDirY < 0) texX = _texWidth - texX - 1;
+                int texX = (int)(wallX * (double)HitTexWidth);
+                if (side == 0 && rayDirX > 0) texX = HitTexWidth - texX - 1;
+                if (side == 1 && rayDirY < 0) texX = HitTexWidth - texX - 1;
 
                 // How much to increase the texture coordinate per screen pixel
-                double step = 1.0 * _texHeight / lineHeight;
+                double step = 1.0 * HitTexHeight / lineHeight;
                 // Starting texture coordinate
                 double texPos = (drawStart - _renderHeight / 2 + lineHeight / 2) * step;
+
+                // Draw black if user doesn't want to draw floor and ceiling
+                if (!_DrawFloorCeiling)
+                {
+                    // Draw before line
+                    for(int i = 0; i < drawStart; i++)
+                    {
+                        _buffer[i, x, 0] = 0;
+                        _buffer[i, x, 1] = 0;
+                        _buffer[i, x, 2] = 0;
+                    }
+
+                    // Draw after line
+                    for(int i = drawEnd; i < _renderHeight; i++)
+                    {
+                        _buffer[i, x, 0] = 0;
+                        _buffer[i, x, 1] = 0;
+                        _buffer[i, x, 2] = 0;
+                    }
+                }
 
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
                     // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-                    int texY = (int)texPos & (_texHeight - 1);
+                    int texY = (int)texPos & (HitTexHeight - 1);
                     texPos += step;
                     // Copying the colors instead of allocating them cause that would just refer to the original image and mess it up
                     byte[] color = new byte[4];
-                    _texture[texNum].GetPixels()[_texHeight * texY + texX].CopyTo(color, 0);
+                    _texture[texNum].GetPixels()[HitTexHeight * texY + texX].CopyTo(color, 0);
                     // Make color darker for Y-sides: R, G and B byte each divided through two
                     if (side == 1)
                     {
@@ -267,18 +333,112 @@ namespace RayCasting.RayCasting
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
                 }
+
+                // SET THE ZBUFFER FOR THE SPRITE CASTING
+                _ZBuffer[x] = perpWallDist;
+            }
+        }
+
+        // Sprite Casting
+        private void CastSprites()
+        {
+            // Sort sprites from far to close
+            for(int i = 0; i < _sprites.Count; i++)
+            {
+                _spriteOrder[i] = i;
+                _spriteDistance[i] = ((_posX - _sprites[i].posX) * (_posX - _sprites[i].posX) + (_posY - _sprites[i].posY) * (_posY - _sprites[i].posY)); // Sqrt not taken, unneeded
+            }
+            sortSprites( ref _spriteOrder, ref _spriteDistance, _sprites.Count);
+
+            // After sorting the sprites, do the projection and draw them
+            for(int i = 0; i < _sprites.Count; i++)
+            {
+                int spriteTexWidth = _sprites[_spriteOrder[i]].texture.Width;
+                int spriteTexHeight = _sprites[_spriteOrder[i]].texture.Height;
+
+                // Translate sprite position to relative to camera
+                double spriteX = _sprites[_spriteOrder[i]].posX - _posX;
+                double spriteY = _sprites[_spriteOrder[i]].posY - _posY;
+
+                // Transform sprite with the inverse camera matrix
+                // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+                // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+                // [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+                double invDet = 1.0 / (_planeX * _dirY - _dirX * _planeY); // Reyuired for correct matrix multiplication
+
+                double transformX = invDet * (_dirY * spriteX - _dirX * spriteY);
+                double transformY = invDet * (-_planeY * spriteX + _planeX * spriteY);
+
+                int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
+
+                // Calculate height of the sprite on screen
+                int spriteHeight = Math.Abs((int)((double)_renderHeight / transformY)); // Using 'transformY' instead of the real distance prevents fisheye
+                // Calculate lowest and highest pixel to fill in current stripe
+                int drawStartY = -spriteHeight / 2 + _renderHeight / 2;
+                if (drawStartY < 0) drawStartY = 0;
+                int drawEndY = spriteHeight / 2 + _renderHeight / 2;
+                if (drawEndY >= _renderHeight) drawEndY = _renderHeight - 1;
+
+                // Calculate width of the sprite
+                int spriteWidth = Math.Abs((int)((double)_renderHeight / transformY));
+                int drawStartX = -spriteWidth / 2 + spriteScreenX;
+                if (drawStartX < 0) drawStartX = 0;
+                int drawEndX = spriteWidth / 2 + spriteScreenX;
+                if (drawEndX >= 0) drawEndX = _renderWidth - 1;
+
+                // loop through every vertical stripe of the sprite on screen
+                for(int stripe = drawStartX; stripe < drawEndX; stripe++)
+                {
+                    int texX = (int)(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * spriteTexWidth / spriteWidth) / 256;
+                    // The conditions in the if are:
+                    // 1) It's in front of camera plane so you don't see things behind you
+                    // 2) It's on the screen (left)
+                    // 3) It's on the screen (right)
+                    // 4) ZBuffer, with perpendicular distance
+                    if(transformY > 0 && stripe > 0 && stripe < _renderWidth && transformY < _ZBuffer[stripe])
+                    {
+                        for(int y = drawStartY; y < drawEndY - 1; y++) // For every pixel of the current stripe
+                        {
+                            int d = y * 256 - _renderHeight * 128 + spriteHeight * 128; // 256 and 128 factors to avoid floats
+                            int texY = ((d * spriteTexHeight) / spriteHeight) / 256;
+                            byte[] color = new byte[4];
+                            // Out of range exception
+                            _sprites[_spriteOrder[i]].texture.GetPixels()[spriteTexWidth * texY + texX].CopyTo(color, 0); // Get current color from the texture
+                            // TODO: Change the invisible color to alfa = 0 or make calculations so you can have semi transparent sprites
+                            if (color[0] != 0 || color[1] != 0 || color[2] != 0) // Paint pixel if it isn't black, black is the invisible color
+                            {
+                                _buffer[y, stripe, 0] = color[0];
+                                _buffer[y, stripe, 1] = color[1];
+                                _buffer[y, stripe, 2] = color[2];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Using reference so it will change the passed arrays and won't just copy data from them and change them only inside the method
+        private void sortSprites(ref int[] order, ref double[] dist, int amount)
+        {
+            List<Tuple<double, int>> sprites = new List<Tuple<double, int>>(amount);
+            for(int i = 0; i < amount; i++)
+            {
+                sprites.Add(new Tuple<double, int>(dist[i], order[i]));
             }
 
-            // speed modifiers
-            _moveSpeed = _deltaTime * 0.005; // Constant value is in squares/second * 10
-            _rotSpeed = _deltaTime * 0.003; // Constant value is in radians/second * 10
+            sprites.OrderBy(x => x.Item1);
+            // Restore in reverse order to go from farthest to nearest
+            for(int i = 0; i < amount; i++)
+            {
+                dist[i] = sprites[amount - i - 1].Item1;
+                order[i] = sprites[amount - i - 1].Item2;
+            }
+        }
 
-            // timing for input and FPS counter
-            _timer.Stop();
-            _deltaTime = _timer.Elapsed.TotalMilliseconds;
-            _timer.Reset();
-
-            // Moving
+        // Movement
+        private void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        {
             // Move froward if no wall in front of you
             if (W_Down)
             {
@@ -315,7 +475,7 @@ namespace RayCasting.RayCasting
             }
         }
 
-        // Loading Textures from path and setting the size in constructor manually
+        // Loading Textures from path
         public void LoadTexturesFromPaths(string[] paths)
         {
             for(int i = 0; i < paths.Length; i++) 
@@ -324,35 +484,23 @@ namespace RayCasting.RayCasting
             }
         }
 
-        // Preloading Textures outside of RayCaster so you can give RayCaster the size of textures if you don't know it
+        // Preloading Textures outside of RayCaster
         public void LoadTextures(List<Texture> textures)
         {
             _texture = textures;
         }
 
+        // Preloading Sprites outside of rayCaster
+        public void LoadSprites(List<Sprite> sprites)
+        {
+            _sprites = sprites;
+            _spriteOrder = new int[_sprites.Count];
+            _spriteDistance = new double[_sprites.Count];
+        }
+
         public byte[,,] GetRawBuffer()
         {
             return _buffer;
-        }
-
-        // NOT WORKING!!!
-        // I have something wrong with the i * something etc. so it returns just 0
-        private static byte[] ConvertTo1D(byte[,,] input)
-        {
-            byte[] output = new byte[input.Length];
-
-            for(int i = 0; i < input.GetLength(0); i++)
-            {
-                for(int j = 0; j < input.GetLength(1); j++)
-                {
-                    for(int k = 0; k < 3; k++)
-                    {
-                        output[i * input.GetLength(0) + j * input.GetLength(1) + k] = input[i,j,k];
-                    }
-                }
-            }
-
-            return output;
         }
     }
 }

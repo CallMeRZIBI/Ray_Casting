@@ -15,10 +15,10 @@ namespace RayCasting
         {
             Console.WriteLine("Ray caster!");
 
-            int mapWidth = 24;
+            /*int mapWidth = 24;
             int mapHeight = 24;
-            int screenWidth = 1280;
-            int screenHeight = 720;
+            int screenWidth = 640;
+            int screenHeight = 360;
             float renderingScale = 1.0f;
 
             int[,] worldMap =
@@ -55,7 +55,7 @@ namespace RayCasting
 
             float[] vertexData = new float[screenWidth * 12];
 
-            /*// Setting up untextured RayCasting
+            // Setting up untextured RayCasting
             UntexturedRayCaster SimpleRCaster = new UntexturedRayCaster(screenWidth, screenHeight, renderingScale);
 
             // Setting up OpenGl for simple RayCasting
@@ -128,6 +128,11 @@ namespace RayCasting
             window.Run();*/
 
             // Textured Raycaster
+            // Rendering things
+            int screenWidth = 1280;
+            int screenHeight = 720;
+            float renderingScale = 1.0f;
+
             int VertexArrayObject = 0;
             int VertexBufferObject = 0;
             int ElementBufferObject = 0;
@@ -137,34 +142,42 @@ namespace RayCasting
 
             int TexHandle = 0;
 
+            // Game things
+            int mapWidth = 24;
+            int mapHeight = 24;
+            double posX = 22, posY = 12;
+
+            bool W_down = false, A_down = false, S_down = false, D_down = false;
+
             int[,] TexturedWorldMap =
-{
-                { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,8,0,3,0,0,0,1},
-                { 1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-                { 1,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-                { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,4,4,0,1},
-                { 1,5,5,5,5,5,5,5,5,0,0,0,0,0,4,0,0,0,0,0,0,4,0,1},
-                { 1,5,0,4,0,0,0,0,5,0,0,0,0,0,4,0,4,4,4,4,0,4,0,1},
-                { 1,5,0,0,0,0,6,0,5,0,0,0,0,0,4,0,4,0,0,4,0,4,0,1},
-                { 1,5,0,5,0,0,0,0,5,0,0,0,0,0,4,0,4,4,0,4,0,4,0,1},
-                { 1,5,0,5,5,5,5,5,5,0,0,0,0,0,4,0,0,0,0,4,0,4,0,1},
-                { 1,5,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,0,4,0,1},
-                { 1,5,5,5,5,5,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,4,0,1},
-                { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+            {
+                  {8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4},
+                  {8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4},
+                  {8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,6},
+                  {8,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6},
+                  {8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,4},
+                  {8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,6,6,6,0,6,4,6},
+                  {8,8,8,8,0,8,8,8,8,8,8,4,4,4,4,4,4,6,0,0,0,0,0,6},
+                  {7,7,7,7,0,7,7,7,7,0,8,0,8,0,8,0,8,4,0,4,0,6,0,6},
+                  {7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,0,0,0,0,0,6},
+                  {7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,0,0,0,0,4},
+                  {7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,6,0,6,0,6},
+                  {7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,4,6,0,6,6,6},
+                  {7,7,7,7,0,7,7,7,7,8,8,4,0,6,8,4,8,3,3,3,0,3,3,3},
+                  {2,2,2,2,0,2,2,2,2,4,6,4,0,0,6,0,6,3,0,0,0,0,0,3},
+                  {2,2,0,0,0,0,0,2,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3},
+                  {2,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3},
+                  {1,0,0,0,0,0,0,0,1,4,4,4,4,4,6,0,6,3,3,0,0,0,3,3},
+                  {2,0,0,0,0,0,0,0,2,2,2,1,2,2,2,6,6,0,0,5,0,5,0,5},
+                  {2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5},
+                  {2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5},
+                  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5},
+                  {2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5},
+                  {2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5},
+                  {2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5}
             };
 
+            // Generating textures
             string[] TexPaths =
             {
                 "./textures/eagle.png",
@@ -182,6 +195,40 @@ namespace RayCasting
             {
                 textures.Add(new Texture(path));
             }
+
+            // Generating sprites
+            Texture[] spriteTextures = new Texture[]
+            {
+                new Texture("./textures/barrel.png"),
+                new Texture("./textures/pillar.png"),
+                new Texture("./textures/greenlight.png")
+            };
+            List<Sprite> sprites = new List<Sprite>();
+
+            sprites.Add(new Sprite() { posX = 20.5, posY = 11.5, texture = spriteTextures[2] }); // Green light in front of playerstart
+            // Green lights in every room
+            sprites.Add(new Sprite() { posX = 18.5, posY = 4.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 10.0, posY = 4.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 10.0, posY = 12.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 6.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 20.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 14.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 14.5, posY = 20.5, texture = spriteTextures[2] });
+
+            // Row of pillars in front of wall
+            sprites.Add(new Sprite() { posX = 18.5, posY = 10.5, texture = spriteTextures[1] });
+            sprites.Add(new Sprite() { posX = 18.5, posY = 11.5, texture = spriteTextures[1] });
+            sprites.Add(new Sprite() { posX = 18.5, posY = 12.5, texture = spriteTextures[1] });
+
+            // Some barrels around the map
+            sprites.Add(new Sprite() { posX = 21.5, posY = 1.5, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 15.5, posY = 1.5, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 16.0, posY = 1.8, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 16.2, posY = 1.2, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 2.5, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 9.5, posY = 15.5, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 10.0, posY = 15.1, texture = spriteTextures[0] });
+            sprites.Add(new Sprite() { posX = 10.5, posY = 15.8, texture = spriteTextures[0] });
 
             float[] vertices =
             {
@@ -211,7 +258,7 @@ namespace RayCasting
             GameWindow window2 = new GameWindow(gws2, nws2);
 
             // Setting up textured RayCasting
-            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, textures[0].Width, textures[0].Height, renderingScale);
+            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, renderingScale, true);
 
             ShaderProgram shaderProgram2 = new ShaderProgram(); 
             window2.Load += () =>
@@ -237,7 +284,8 @@ namespace RayCasting
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indicies.Length * sizeof(uint), indicies, BufferUsageHint.StaticDraw);
 
-                RCaster.LoadTextures(textures);
+                RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
+                RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
                 RCaster.CreateMap(TexturedWorldMap, posX, posY);
             };
 
