@@ -8,7 +8,8 @@
     ".NETCoreApp,Version=v5.0": {
       "RayCasting/1.0.0": {
         "dependencies": {
-          "OpenTK": "4.6.7"
+          "OpenTK": "4.6.7",
+          "SixLabors.ImageSharp": "1.0.4"
         },
         "runtime": {
           "RayCasting.dll": {}
@@ -148,6 +149,14 @@
           }
         }
       },
+      "SixLabors.ImageSharp/1.0.4": {
+        "runtime": {
+          "lib/netcoreapp3.1/SixLabors.ImageSharp.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.4.0"
+          }
+        }
+      },
       "System.Runtime.CompilerServices.Unsafe/5.0.0": {}
     }
   },
@@ -233,6 +242,13 @@
       "sha512": "sha512-GMFH6nlGll+UM37al3BrjqczyY9KDigHG5H1Tkgf186Z2wRXX3Thx1cOFNaDwBIB7iva73bA0a+cQHgKfV/3wg==",
       "path": "opentk.windowing.graphicslibraryframework/4.6.7",
       "hashPath": "opentk.windowing.graphicslibraryframework.4.6.7.nupkg.sha512"
+    },
+    "SixLabors.ImageSharp/1.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-H2rPiEr2ddBOltOuqRYhpLBAsQXDAhbzMMhhuksnBG2oefup1MXMchALe7yYkKJksNbtxbZHKeM6dn/68I75qw==",
+      "path": "sixlabors.imagesharp/1.0.4",
+      "hashPath": "sixlabors.imagesharp.1.0.4.nupkg.sha512"
     },
     "System.Runtime.CompilerServices.Unsafe/5.0.0": {
       "type": "package",

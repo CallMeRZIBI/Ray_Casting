@@ -92,7 +92,6 @@ namespace RayCasting.RayCasting
             CastWall();
 
             // Sprite casting
-            // Take a look at it
             CastSprites();
 
             // TODO: Let user time game loop because he will also have some own calculations
@@ -106,6 +105,7 @@ namespace RayCasting.RayCasting
             _timer.Reset();
 
             // Moving
+            // TODO: Add some boundaries around player for normal collision
             Move(W_Down, A_Down, S_Down, D_Down);
         }
 
@@ -346,7 +346,7 @@ namespace RayCasting.RayCasting
             for(int i = 0; i < _sprites.Count; i++)
             {
                 _spriteOrder[i] = i;
-                _spriteDistance[i] = ((_posX - _sprites[i].posX) * (_posX - _sprites[i].posX) + (_posY - _sprites[i].posY) * (_posY - _sprites[i].posY)); // Sqrt not taken, unneeded
+                _spriteDistance[i] = (_posX - _sprites[i].posX) * (_posX - _sprites[i].posX) + (_posY - _sprites[i].posY) * (_posY - _sprites[i].posY); // Sqrt not taken, unneeded
             }
             sortSprites( ref _spriteOrder, ref _spriteDistance, _sprites.Count);
 
@@ -385,7 +385,7 @@ namespace RayCasting.RayCasting
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 if (drawStartX < 0) drawStartX = 0;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
-                if (drawEndX >= 0) drawEndX = _renderWidth - 1;
+                if (drawEndX >= _renderWidth) drawEndX = _renderWidth - 1;
 
                 // loop through every vertical stripe of the sprite on screen
                 for(int stripe = drawStartX; stripe < drawEndX; stripe++)
@@ -400,7 +400,7 @@ namespace RayCasting.RayCasting
                     {
                         for(int y = drawStartY; y < drawEndY - 1; y++) // For every pixel of the current stripe
                         {
-                            int d = y * 256 - _renderHeight * 128 + spriteHeight * 128; // 256 and 128 factors to avoid floats
+                            int d = (y * 256) - (_renderHeight * 128) + (spriteHeight * 128); // 256 and 128 factors to avoid floats
                             int texY = ((d * spriteTexHeight) / spriteHeight) / 256;
                             byte[] color = new byte[4];
                             // Out of range exception
@@ -427,8 +427,9 @@ namespace RayCasting.RayCasting
                 sprites.Add(new Tuple<double, int>(dist[i], order[i]));
             }
 
-            sprites.OrderBy(x => x.Item1);
+            sprites.Sort();
             // Restore in reverse order to go from farthest to nearest
+            //sprites.Reverse(); // List.Reverse takes almost 2ms
             for(int i = 0; i < amount; i++)
             {
                 dist[i] = sprites[amount - i - 1].Item1;
@@ -448,7 +449,7 @@ namespace RayCasting.RayCasting
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (_map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
+                if (_map[(int)(_posX  - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
                 if (_map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
             }
             // Rotate to the right
