@@ -45,6 +45,9 @@
     <None Update="textures\redbrick.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="textures\transparent_barrel.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="textures\wood.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

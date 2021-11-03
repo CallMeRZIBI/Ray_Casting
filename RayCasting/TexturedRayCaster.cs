@@ -406,11 +406,11 @@ namespace RayCasting.RayCasting
                             // Out of range exception
                             _sprites[_spriteOrder[i]].texture.GetPixels()[spriteTexWidth * texY + texX].CopyTo(color, 0); // Get current color from the texture
                             // TODO: Change the invisible color to alfa = 0 or make calculations so you can have semi transparent sprites
-                            if (color[0] != 0 || color[1] != 0 || color[2] != 0) // Paint pixel if it isn't black, black is the invisible color
+                            if (color[3] != 0) // Paint pixel if alfa isn't maximum
                             {
-                                _buffer[y, stripe, 0] = color[0];
-                                _buffer[y, stripe, 1] = color[1];
-                                _buffer[y, stripe, 2] = color[2];
+                                _buffer[y, stripe, 0] = (byte)((color[0] * color[3] + _buffer[y, stripe, 0] * (255 - color[3])) / 255); // Uses transparency
+                                _buffer[y, stripe, 1] = (byte)((color[1] * color[3] + _buffer[y, stripe, 1] * (255 - color[3])) / 255); 
+                                _buffer[y, stripe, 2] = (byte)((color[2] * color[3] + _buffer[y, stripe, 2] * (255 - color[3])) / 255);
                             }
                         }
                     }

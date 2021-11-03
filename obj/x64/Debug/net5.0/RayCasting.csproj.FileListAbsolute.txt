@@ -43,3 +43,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\textures\
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\vertex_shader.glsl
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\TexturedShaders\fragment_shader.glsl
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\TexturedShaders\vertex_shader.glsl
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\textures\transparent_barrel.png
