@@ -46,9 +46,18 @@ namespace RayCasting.RayCasting
 
         private double _moveSpeed;
         private double _rotSpeed;
-        private readonly bool _DrawFloorCeiling;
 
-        public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1, bool DrawFloorCeiling = false)
+        private bool _DrawFloorCeiling = false;
+
+        // Floor Ceiling Texture
+        private int _floorTexture;
+        private int _ceilingTexture;
+
+        // Floor Ceiling Color
+        private byte[] _floorColor;
+        private byte[] _ceilingColor;
+
+        public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
         {
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
@@ -65,8 +74,6 @@ namespace RayCasting.RayCasting
 
             _moveSpeed = 0;
             _rotSpeed = 0;
-
-            _DrawFloorCeiling = DrawFloorCeiling;
         }
 
         public void CreateMap(int[,] map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
@@ -142,12 +149,10 @@ namespace RayCasting.RayCasting
                 for (int x = 0; x < _renderWidth; ++x)
                 {
                     // Choose the floor and ceiling texture
-                    int ceilingTexture = 6;
-                    int floorTexture = 3;
-                    int ceilingTexWidth = _texture[ceilingTexture].Width;
-                    int ceilingTexHeight = _texture[ceilingTexture].Height;
-                    int floorTexWidth = _texture[floorTexture].Width;
-                    int floorTexHeight = _texture[floorTexture].Height;
+                    int ceilingTexWidth = _texture[_ceilingTexture].Width;
+                    int ceilingTexHeight = _texture[_ceilingTexture].Height;
+                    int floorTexWidth = _texture[_floorTexture].Width;
+                    int floorTexHeight = _texture[_floorTexture].Height;
 
                     // The cell coord is simply got from the integer parts of floorX and floorY
                     int cellX = (int)(floorX);
@@ -165,7 +170,7 @@ namespace RayCasting.RayCasting
                     byte[] color = new byte[4];
 
                     // Floor
-                    _texture[ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
+                    _texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
@@ -176,7 +181,7 @@ namespace RayCasting.RayCasting
                     ty = (int)(floorTexHeight * (floorY - cellY)) & (floorTexHeight - 1);
 
                     // Ceiling (symmetrical, at _renderHeight - y - 1 instead of y)
-                    _texture[floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
+                    _texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
                     _buffer[_renderHeight - y - 1, x, 0] = color[0];
                     _buffer[_renderHeight - y - 1, x, 1] = color[1];
                     _buffer[_renderHeight - y - 1, x, 2] = color[2];
@@ -299,17 +304,17 @@ namespace RayCasting.RayCasting
                     // Draw before line
                     for(int i = 0; i < drawStart; i++)
                     {
-                        _buffer[i, x, 0] = 0;
-                        _buffer[i, x, 1] = 0;
-                        _buffer[i, x, 2] = 0;
+                        _buffer[i, x, 0] = _floorColor[0];
+                        _buffer[i, x, 1] = _floorColor[1];
+                        _buffer[i, x, 2] = _floorColor[2];
                     }
 
                     // Draw after line
                     for(int i = drawEnd; i < _renderHeight; i++)
                     {
-                        _buffer[i, x, 0] = 0;
-                        _buffer[i, x, 1] = 0;
-                        _buffer[i, x, 2] = 0;
+                        _buffer[i, x, 0] = _ceilingColor[0];
+                        _buffer[i, x, 1] = _ceilingColor[1];
+                        _buffer[i, x, 2] = _ceilingColor[2];
                     }
                 }
 
@@ -373,7 +378,7 @@ namespace RayCasting.RayCasting
                 int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
 
                 // Calculate height of the sprite on screen
-                int spriteHeight = Math.Abs((int)((double)_renderHeight / transformY)); // Using 'transformY' instead of the real distance prevents fisheye
+                int spriteHeight = Math.Abs((int)(_renderHeight / transformY)); // Using 'transformY' instead of the real distance prevents fisheye
                 // Calculate lowest and highest pixel to fill in current stripe
                 int drawStartY = -spriteHeight / 2 + _renderHeight / 2;
                 if (drawStartY < 0) drawStartY = 0;
@@ -381,7 +386,7 @@ namespace RayCasting.RayCasting
                 if (drawEndY >= _renderHeight) drawEndY = _renderHeight - 1;
 
                 // Calculate width of the sprite
-                int spriteWidth = Math.Abs((int)((double)_renderHeight / transformY));
+                int spriteWidth = Math.Abs((int)(_renderHeight / transformY));
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 if (drawStartX < 0) drawStartX = 0;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
@@ -474,6 +479,35 @@ namespace RayCasting.RayCasting
                 _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
                 _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
             }
+        }
+
+        // Draws walls and ceilings as texture if user want it
+        /// <summary>
+        /// Draws floor and ceiling as texture.
+        /// This can dramadically reduce fps.
+        /// </summary>
+        /// <param name="TexFloorIndex">Index of the texture</param>
+        /// <param name="TexCeilingIndex">Index of the texture</param>
+        public void UseFloorCeilingTextures(int TexFloorIndex, int TexCeilingIndex)
+        {
+            _DrawFloorCeiling = true;
+
+            _floorTexture = TexFloorIndex;
+            _ceilingTexture = TexCeilingIndex;
+        }
+
+        // Draws walls and ceiling just as color
+        /// <summary>
+        /// Draws floor and ceiling just as color
+        /// </summary>
+        /// <param name="FloorColor">RGB value in byte array</param>
+        /// <param name="CeilingColor">RGB value in byte array</param>
+        public void UseFloorCeilingColors(byte[] FloorColor, byte[] CeilingColor)
+        {
+            _DrawFloorCeiling = false;
+
+            _floorColor = FloorColor;
+            _ceilingColor = CeilingColor;
         }
 
         // Loading Textures from path

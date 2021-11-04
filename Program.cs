@@ -259,7 +259,7 @@ namespace RayCasting
             GameWindow window2 = new GameWindow(gws2, nws2);
 
             // Setting up textured RayCasting
-            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, renderingScale, true);
+            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, renderingScale);
 
             ShaderProgram shaderProgram2 = new ShaderProgram(); 
             window2.Load += () =>
@@ -288,6 +288,8 @@ namespace RayCasting
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
                 RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
                 RCaster.CreateMap(TexturedWorldMap, posX, posY);
+                RCaster.UseFloorCeilingTextures(3, 6);
+                //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});
             };
 
             byte[,,] data;
