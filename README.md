@@ -6,6 +6,7 @@ My ray casting engine project, most of the calculations came from this beautiful
 #
 
 ## **Ray Caster**
+![Textured Ray Caster](https://github.com/CallMeRZIBI/Ray_Casting/blob/Development/readme/textured_ray_caster.gif)
 ### When creating ray caster you must give it those arguments:
 ```C#
 RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster();
