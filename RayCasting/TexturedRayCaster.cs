@@ -500,8 +500,8 @@ namespace RayCasting.RayCasting
         /// <summary>
         /// Draws floor and ceiling just as color
         /// </summary>
-        /// <param name="FloorColor">RGB value in byte array</param>
-        /// <param name="CeilingColor">RGB value in byte array</param>
+        /// <param name="FloorColor">RGB value from 0 - 255 in byte array</param>
+        /// <param name="CeilingColor">RGB value from 0 - 255 in byte array</param>
         public void UseFloorCeilingColors(byte[] FloorColor, byte[] CeilingColor)
         {
             _DrawFloorCeiling = false;
