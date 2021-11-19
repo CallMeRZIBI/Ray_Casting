@@ -89,9 +89,6 @@ namespace RayCasting.RayCasting
 
         public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
-            // Timing for frame time
-            _timer.Start();
-
             // Floor Casting
             if(_DrawFloorCeiling) CastFloor();
 
@@ -101,19 +98,26 @@ namespace RayCasting.RayCasting
             // Sprite casting
             CastSprites();
 
-            // TODO: Let user time game loop because he will also have some own calculations
             // speed modifiers
             _moveSpeed = _deltaTime * 5; // Constant value is xd
             _rotSpeed = _deltaTime * 3; // Constant value is xd
 
             // timing for input and FPS counter
             _timer.Stop();
-            _deltaTime = _timer.Elapsed.TotalMilliseconds / 1000;
+            CalculateDelatTime();
             _timer.Reset();
 
             // Moving
             // TODO: Add some boundaries around player for normal collision
             Move(W_Down, A_Down, S_Down, D_Down);
+
+            // Timing for frame time
+            _timer.Start();
+        }
+
+        public void CalculateDelatTime()
+        {
+            _deltaTime = _timer.Elapsed.TotalSeconds;
         }
 
         // Floor Casting

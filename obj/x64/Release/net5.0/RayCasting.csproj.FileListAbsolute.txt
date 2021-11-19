@@ -43,3 +43,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\texture
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\vertex_shader.glsl
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\SixLabors.ImageSharp.dll
 C:\Users\micha\source\repos\RayCasting\RayCasting\obj\x64\Release\net5.0\RayCasting.csproj.AssemblyReference.cache
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\textures\transparent_barrel.png

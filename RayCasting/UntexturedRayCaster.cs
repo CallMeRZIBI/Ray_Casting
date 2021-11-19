@@ -24,7 +24,7 @@ namespace RayCasting.RayCasting
         private int _mapHeight;
 
         private readonly Stopwatch _timer;
-        private double _deltaTime;
+        private double _deltaTime = 0;
 
         // Getting info about positioning
         private double _posX;
@@ -75,9 +75,6 @@ namespace RayCasting.RayCasting
         // Update RayCast calculations with given pos and save vertices in OpenGL format which later can be fromated
         public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
-            // Timing for frame time
-            _timer.Start();
-
             for (int x = 0; x < _renderWidth; x++)
             {
                 // Calculate ray position and direction
@@ -203,12 +200,12 @@ namespace RayCasting.RayCasting
             }
 
             // Speed modifiers
-            _moveSpeed = _deltaTime * 200.0 * LineThickness; // Constant value is in squares/second * 10
-            _rotSpeed = _deltaTime * 120.0 * LineThickness; // Constant value is in radians/second * 10
+            _moveSpeed = _deltaTime * 10.0 * LineThickness; // Constant value is in squares/second * 10
+            _rotSpeed = _deltaTime * 6.0 * LineThickness; // Constant value is in radians/second * 10
 
             // Timing for input *some problem with probably stopwatch or me cause it flickers sometimes
             _timer.Stop();
-            _deltaTime = _timer.Elapsed.TotalSeconds;
+            CalculateDelatTime();
             _timer.Reset();
 
             // Moving
@@ -246,6 +243,14 @@ namespace RayCasting.RayCasting
                 _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
                 _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
             }
+
+            // Timing for frame times
+            _timer.Start();
+        }
+
+        public void CalculateDelatTime()
+        {
+            _deltaTime = _timer.Elapsed.TotalSeconds;
         }
 
         public float[] GetGLVertices()
