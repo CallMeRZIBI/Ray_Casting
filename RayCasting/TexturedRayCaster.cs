@@ -369,6 +369,8 @@ namespace RayCasting.RayCasting
                 double spriteX = _sprites[_spriteOrder[i]].posX - _posX;
                 double spriteY = _sprites[_spriteOrder[i]].posY - _posY;
 
+                Sprite sprite = _sprites[_spriteOrder[i]];
+
                 // Transform sprite with the inverse camera matrix
                 // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
                 // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
@@ -381,16 +383,19 @@ namespace RayCasting.RayCasting
 
                 int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
 
+                // Moving sprite up or down
+                int vMoveScreen = (int)(sprite.posZ / transformY);
+
                 // Calculate height of the sprite on screen
-                int spriteHeight = Math.Abs((int)(_renderHeight / transformY)); // Using 'transformY' instead of the real distance prevents fisheye
+                int spriteHeight = (int)(Math.Abs((int)(_renderHeight / transformY)) * sprite.scaleY); // Using 'transformY' instead of the real distance prevents fisheye
                 // Calculate lowest and highest pixel to fill in current stripe
-                int drawStartY = -spriteHeight / 2 + _renderHeight / 2;
+                int drawStartY = -spriteHeight / 2 + _renderHeight / 2 + vMoveScreen;
                 if (drawStartY < 0) drawStartY = 0;
-                int drawEndY = spriteHeight / 2 + _renderHeight / 2;
+                int drawEndY = spriteHeight / 2 + _renderHeight / 2 + vMoveScreen;
                 if (drawEndY >= _renderHeight) drawEndY = _renderHeight - 1;
 
                 // Calculate width of the sprite
-                int spriteWidth = Math.Abs((int)(_renderHeight / transformY));
+                int spriteWidth = (int)(Math.Abs((int)(_renderHeight / transformY)) * sprite.scaleX);
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 if (drawStartX < 0) drawStartX = 0;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
@@ -409,7 +414,7 @@ namespace RayCasting.RayCasting
                     {
                         for(int y = drawStartY; y < drawEndY - 1; y++) // For every pixel of the current stripe
                         {
-                            int d = (y * 256) - (_renderHeight * 128) + (spriteHeight * 128); // 256 and 128 factors to avoid floats
+                            int d = ((y - vMoveScreen) * 256) - (_renderHeight * 128) + (spriteHeight * 128); // 256 and 128 factors to avoid floats
                             int texY = ((d * spriteTexHeight) / spriteHeight) / 256;
                             byte[] color = new byte[4];
                             // Out of range exception

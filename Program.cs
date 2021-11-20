@@ -223,9 +223,9 @@ namespace RayCasting
 
             // Some barrels around the map
             sprites.Add(new Sprite() { posX = 21.5, posY = 1.5, texture = spriteTextures[0] });
-            sprites.Add(new Sprite() { posX = 15.5, posY = 1.5, texture = spriteTextures[3] }); // Testing transparency
+            sprites.Add(new Sprite() { posX = 15.5, posY = 1.5, posZ = 128, scaleX = 0.5, scaleY = 0.5, texture = spriteTextures[3] }); // Testing transparency and positioning + scailing
             sprites.Add(new Sprite() { posX = 16.0, posY = 1.8, texture = spriteTextures[3] }); // Testing transparency
-            sprites.Add(new Sprite() { posX = 16.2, posY = 1.2, texture = spriteTextures[3] }); // Testing transparency
+            sprites.Add(new Sprite() { posX = 16.2, posY = 1.2, posZ = -64, scaleX = 0.7, scaleY = 0.7, texture = spriteTextures[3] }); // Testing transparency and positioning + scailing
             sprites.Add(new Sprite() { posX = 3.5, posY = 2.5, texture = spriteTextures[0] });
             sprites.Add(new Sprite() { posX = 9.5, posY = 15.5, texture = spriteTextures[0] });
             sprites.Add(new Sprite() { posX = 10.0, posY = 15.1, texture = spriteTextures[0] });

@@ -10,7 +10,17 @@ namespace RayCasting.RayCasting
     {
         public double posX { get; set; }
         public double posY { get; set; }
+        public double? posZ { get; set; }        // default is 0
+        public double? scaleX { get; set; }      // default is 1
+        public double? scaleY { get; set; }      // default is 1
         public Texture texture { get; set; }
+
+        public Sprite()
+        {
+            posZ = posZ == null ? 0 : posZ;
+            scaleX = scaleX == null ? 1.0 : scaleX;
+            scaleY = scaleY == null ? 1.0 : scaleY;
+        }
 
         public void LoadTextureFromPath(string path)
         {
