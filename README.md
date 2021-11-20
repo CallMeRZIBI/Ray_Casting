@@ -120,6 +120,9 @@ RayCasting.Sprite sprite = new RayCasting.Sprite();
 ### This class have three public variables
 - posX - double for position
 - posY - double for position
+- posZ - double for position (default is 0)
+- scaleX - double for scailing (default is 1)
+- scaleY - double for scailing (default is 1)
 - texture - Texture of the sprite
 ### You can give sprite texture simply like public variable or with this method
 ```C#
