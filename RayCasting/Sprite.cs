@@ -10,7 +10,7 @@ namespace RayCasting.RayCasting
     {
         public double posX { get; set; }
         public double posY { get; set; }
-        public double? posZ { get; set; }        // default is 0
+        public double? posZ { get; set; }        // default is 0 *relies on resolution
         public double? scaleX { get; set; }      // default is 1
         public double? scaleY { get; set; }      // default is 1
         public Texture texture { get; set; }

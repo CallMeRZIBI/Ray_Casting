@@ -9,7 +9,7 @@ My ray casting engine project, most of the calculations came from this beautiful
 ![Textured Ray Caster](https://github.com/CallMeRZIBI/Ray_Casting/blob/Development/readme/textured_ray_caster.gif)
 ### When creating ray caster you must give it those arguments:
 ```C#
-RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster();
+RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster(screenWidth, screenHeight, renderingScale);
 ```
 - screenWidth - int 
 - screenHeight - int
@@ -19,7 +19,7 @@ RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster();
 
 ### To create map that you can walk on you have to call this method
 ```C#
-rayCaster.CreateMap();
+rayCaster.CreateMap(map, StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
 ```
 and give it those parameters
 - map - 2D array of numbers which are corresponding to indexes of textures - 1 (0 isn't anything)
@@ -35,7 +35,7 @@ and give it those parameters
 ### Set what kind of floor and ceiling you want
 To have floor and ceiling only as color use this method
 ```C#
-rayCaster.UseFloorCeilingColors();
+rayCaster.UseFloorCeilingColors(FloorColor, CeilingColor);
 ```
 and give it those parameters as arguments
 - FloorColor - 1D byte array with RGB values from 0 - 255
@@ -45,7 +45,7 @@ and give it those parameters as arguments
 
 And to have textured ceiling and floor use this method
 ```C#
-rayCaster.UseFloorCeilingTextures();
+rayCaster.UseFloorCeilingTextures(TexFloorIndex, TexCeilingIndex);
 ```
 and give it those parameters as argument
 - TexFloorIndex - int - index of texture in textures list that you give to ray caster
@@ -55,7 +55,7 @@ and give it those parameters as argument
 
 ### Update frame
 ```C#
-rayCaster.UpdateRayCast();
+rayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
 ```
 and give it those parameters as arguments for implemented movement
 - W_Down - bool if W is pressed (true = pressed)
@@ -78,7 +78,7 @@ returning value
 ### You can load textures in two different ways
 ### From path
 ```C#
-rayCaster.LoadTexturesFromPaths();
+rayCaster.LoadTexturesFromPaths(paths);
 ```
 You have to give it this parameter as argument
 - paths - 1D string array which is containing paths to images
@@ -87,7 +87,7 @@ You have to give it this parameter as argument
 
 ### Or load it yourself and then give List of textures to it
 ```C#
-rayCaster.LoadTextures();
+rayCaster.LoadTextures(textures);
 ```
 You have to give it this parameter as argument
 - textures - List of Textures, the Texture class is in the library
@@ -96,7 +96,7 @@ You have to give it this parameter as argument
 
 ### Creating texture
 ```C#
-RayCasting.Texture texture = new RayCasting.Texture();
+RayCasting.Texture texture = new RayCasting.Texture(path);
 ```
 You have to give it this parameter as argument
 - path - string with path to image
@@ -106,7 +106,7 @@ You have to give it this parameter as argument
 ## **Sprites**
 ### You can load sprites with this method
 ```C#
-rayCaster.LoadSprites();
+rayCaster.LoadSprites(sprites);
 ```
 You have to give it this parameter as argument
 - sprites - List of Sprites
@@ -120,13 +120,13 @@ RayCasting.Sprite sprite = new RayCasting.Sprite();
 ### This class have three public variables
 - posX - double for position
 - posY - double for position
-- posZ - double for position (default is 0)
+- posZ - double for position (default is 0) *relies on resolution
 - scaleX - double for scailing (default is 1)
 - scaleY - double for scailing (default is 1)
 - texture - Texture of the sprite
 ### You can give sprite texture simply like public variable or with this method
 ```C#
-sprite.LoadTextureFromPath();
+sprite.LoadTextureFromPath(path);
 ```
 And give it this parameter as argument
 - path - string with path to image

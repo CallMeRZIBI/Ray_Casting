@@ -171,10 +171,12 @@ namespace RayCasting.RayCasting
                     floorY += floorStepY;
 
                     // Draw the pixel
-                    byte[] color = new byte[4];
+                    byte[] color = new byte[3];
 
                     // Floor
-                    _texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
+                    //_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
+                    //Buffer.BlockCopy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte));
+                    Array.Copy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], color, 3);   // The fastest implementation
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
@@ -185,7 +187,9 @@ namespace RayCasting.RayCasting
                     ty = (int)(floorTexHeight * (floorY - cellY)) & (floorTexHeight - 1);
 
                     // Ceiling (symmetrical, at _renderHeight - y - 1 instead of y)
-                    _texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
+                    //_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
+                    //Buffer.BlockCopy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte)); 
+                    Array.Copy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], color, 3);     // The fastest implementation
                     _buffer[_renderHeight - y - 1, x, 0] = color[0];
                     _buffer[_renderHeight - y - 1, x, 1] = color[1];
                     _buffer[_renderHeight - y - 1, x, 2] = color[2];
@@ -329,8 +333,12 @@ namespace RayCasting.RayCasting
                     int texY = (int)texPos & (HitTexHeight - 1);
                     texPos += step;
                     // Copying the colors instead of allocating them cause that would just refer to the original image and mess it up
-                    byte[] color = new byte[4];
-                    _texture[texNum].GetPixels()[HitTexHeight * texY + texX].CopyTo(color, 0);
+                    byte[] color = new byte[3];
+
+                    //_texture[texNum].GetPixels()[HitTexHeight * texY + texX].CopyTo(color, 0);
+                    //Buffer.BlockCopy(_texture[texNum].GetPixels()[HitTexHeight * texY + texX], 0, color, 0, 3 * sizeof(byte));
+                    Array.Copy(_texture[texNum].GetPixels()[HitTexHeight * texY + texX], color, 3);     // The fastest solution
+
                     // Make color darker for Y-sides: R, G and B byte each divided through two
                     if (side == 1)
                     {
@@ -348,6 +356,7 @@ namespace RayCasting.RayCasting
             }
         }
 
+        // TODO: The Z value relies on resolution fix it
         // Sprite Casting
         private void CastSprites()
         {
@@ -418,7 +427,11 @@ namespace RayCasting.RayCasting
                             int texY = ((d * spriteTexHeight) / spriteHeight) / 256;
                             byte[] color = new byte[4];
                             // Out of range exception
-                            _sprites[_spriteOrder[i]].texture.GetPixels()[spriteTexWidth * texY + texX].CopyTo(color, 0); // Get current color from the texture
+
+                            //_sprites[_spriteOrder[i]].texture.GetPixels()[spriteTexWidth * texY + texX].CopyTo(color, 0); // Get current color from the texture
+                            //Buffer.BlockCopy(sprite.texture.GetPixels()[spriteTexWidth * texY + texX], 0, color, 0, 4 * sizeof(byte));
+                            Array.Copy(sprite.texture.GetPixels()[spriteTexWidth * texY + texX], color, 4);  // The fastest solution
+
                             // TODO: Change the invisible color to alfa = 0 or make calculations so you can have semi transparent sprites
                             if (color[3] != 0) // Paint pixel if alfa isn't maximum
                             {

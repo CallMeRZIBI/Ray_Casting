@@ -201,20 +201,20 @@ namespace RayCasting
             {
                 new Texture("./textures/barrel.png"),
                 new Texture("./textures/pillar.png"),
-                new Texture("./textures/greenlight.png"),
+                new Texture("./textures/greenlight_smaller.png"),
                 new Texture("./textures/transparent_barrel.png")
             };
             List<Sprite> sprites = new List<Sprite>();
 
-            sprites.Add(new Sprite() { posX = 20.5, posY = 11.5, texture = spriteTextures[2] }); // Green light in front of playerstart
+            sprites.Add(new Sprite() { posX = 20.5, posY = 11.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] }); // Green light in front of playerstart
             // Green lights in every room
-            sprites.Add(new Sprite() { posX = 18.5, posY = 4.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 10.0, posY = 4.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 10.0, posY = 12.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 3.5, posY = 6.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 3.5, posY = 20.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 3.5, posY = 14.5, texture = spriteTextures[2] });
-            sprites.Add(new Sprite() { posX = 14.5, posY = 20.5, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 18.5, posY = 4.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 10.0, posY = 4.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 10.0, posY = 12.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 6.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 20.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 3.5, posY = 14.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
+            sprites.Add(new Sprite() { posX = 14.5, posY = 20.5, posZ = 128 + 28, scaleX = 0.3125, scaleY = 0.171875, texture = spriteTextures[2] });
 
             // Row of pillars in front of wall
             sprites.Add(new Sprite() { posX = 18.5, posY = 10.5, texture = spriteTextures[1] });
