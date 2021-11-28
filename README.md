@@ -74,6 +74,33 @@ returning value
 
 #
 
+## **Map**
+```C#
+RayCasting.Map map = new Map();
+```
+Map has one public variable
+- map - 2d array of integers that are corresponding to texture indexes + 1 that you'll load (0 is empty)
+
+Map has 2 private variables
+- Height - height of the map
+- Width - width of the map
+### You can load or save map
+### Loading
+```C#
+map.LoadMap(path);
+```
+You have to give it this parameter as argument
+- path - path to map's json file
+### Saving
+```C#
+map.SaveMap(path);
+```
+You have to give it this parameter as argument
+- path - path to map's json file
+## Note
+You have to first declare map and then you can save it
+#
+
 ## **Textures**
 ### You can load textures in two different ways
 ### From path

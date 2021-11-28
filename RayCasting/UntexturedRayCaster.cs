@@ -19,9 +19,7 @@ namespace RayCasting.RayCasting
         public float LineThickness { get; private set; }
 
         // Map must have boundings otherwise the ray would just fly away exactly it will get out of the bounds of the array
-        private int[,] _map;
-        private int _mapWidth;
-        private int _mapHeight;
+        private Map _map;
 
         private readonly Stopwatch _timer;
         private double _deltaTime = 0;
@@ -59,11 +57,9 @@ namespace RayCasting.RayCasting
             _rotSpeed = 0;
         }
 
-        public void CreateMap(int[,] map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
             _map = map;
-            _mapWidth = _map.GetLength(1);
-            _mapHeight = _map.GetLength(0);
             _posX = StartingPosX;
             _posY = StartingPosY;
             _dirX = -1;
@@ -141,7 +137,7 @@ namespace RayCasting.RayCasting
                         side = 1;
                     }
                     // Check if ray has hit a wall
-                    if (_map[mapX, mapY] > 0) hit = 1;
+                    if (_map.map[mapX, mapY] > 0) hit = 1;
                 }
 
                 // Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
@@ -157,7 +153,7 @@ namespace RayCasting.RayCasting
 
                 // Choose wall color
                 Color color;
-                switch (_map[mapX, mapY])
+                switch (_map.map[mapX, mapY])
                 {
                     case 1:
                         color = new Color() { r = 1.0f, g = 0.0f, b = 0.0f }; //red
@@ -200,8 +196,8 @@ namespace RayCasting.RayCasting
             }
 
             // Speed modifiers
-            _moveSpeed = _deltaTime * 10.0 * LineThickness; // Constant value is in squares/second * 10
-            _rotSpeed = _deltaTime * 6.0 * LineThickness; // Constant value is in radians/second * 10
+            _moveSpeed = _deltaTime * 5.0 * LineThickness; // Constant value is in idk
+            _rotSpeed = _deltaTime * 3.0 * LineThickness; // Constant value is in idk
 
             // Timing for input *some problem with probably stopwatch or me cause it flickers sometimes
             _timer.Stop();
@@ -212,14 +208,14 @@ namespace RayCasting.RayCasting
             // Move froward if no wall in front of you
             if (W_Down)
             {
-                if (_map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
-                if (_map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
+                if (_map.map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
+                if (_map.map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
             }
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (_map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
-                if (_map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
+                if (_map.map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
+                if (_map.map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
             }
             // Rotate to the right
             if (D_Down)

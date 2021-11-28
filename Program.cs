@@ -49,6 +49,9 @@ namespace RayCasting
                 { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
             };
 
+            Map map = new Map();
+            map.LoadMap("./maps/map1.json");
+
             double posX = 22, posY = 12;
 
             bool W_down = false, A_down = false, S_down = false, D_down = false;
@@ -78,7 +81,7 @@ namespace RayCasting
                 shaderProgram = LoadShaderProgram("./vertex_shader.glsl", "./fragment_shader.glsl");
                 //uniformProj = GL.GetUniformLocation(shaderProgram.id, "proj");
                 
-                SimpleRCaster.CreateMap(worldMap, posX, posY);
+                SimpleRCaster.CreateMap(map, posX, posY);
             };
 
             window.RenderFrame += (FrameEventArgs args) =>
@@ -176,6 +179,9 @@ namespace RayCasting
                   {2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5},
                   {2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5}
             };
+
+            Map map = new Map();
+            map.LoadMap("./maps/map1.json");
 
             // Generating textures
             string[] TexPaths =
@@ -287,7 +293,7 @@ namespace RayCasting
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
                 RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
-                RCaster.CreateMap(TexturedWorldMap, posX, posY);
+                RCaster.CreateMap(map, posX, posY);
                 RCaster.UseFloorCeilingTextures(3, 6);
                 //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});
             };

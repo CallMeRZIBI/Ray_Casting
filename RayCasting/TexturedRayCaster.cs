@@ -14,9 +14,6 @@ namespace RayCasting.RayCasting
         private readonly int _renderWidth;
         private readonly int _renderHeight;
 
-        private readonly int _mapWidth;
-        private readonly int _mapHeight;
-
         private byte[,,] _buffer;
 
         // 1D Zbuffer
@@ -30,7 +27,7 @@ namespace RayCasting.RayCasting
         private double[] _spriteDistance;
 
         // Map must have boundings otherwise the ray would just fly away exactly it will get out of the bounds of the array
-        private  int[,] _map;
+        private Map _map;
 
         // Timing *will be deleted
         private readonly Stopwatch _timer;
@@ -76,7 +73,7 @@ namespace RayCasting.RayCasting
             _rotSpeed = 0;
         }
 
-        public void CreateMap(int[,] map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
             _map = map;
             _posX = StartingPosX;
@@ -99,8 +96,8 @@ namespace RayCasting.RayCasting
             CastSprites();
 
             // speed modifiers
-            _moveSpeed = _deltaTime * 5; // Constant value is xd
-            _rotSpeed = _deltaTime * 3; // Constant value is xd
+            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
+            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
 
             // timing for input and FPS counter
             _timer.Stop();
@@ -269,7 +266,7 @@ namespace RayCasting.RayCasting
                         side = 1;
                     }
                     // Check if ray has hit a wall
-                    if (_map[mapX, mapY] > 0) hit = 1;
+                    if (_map.map[mapX, mapY] > 0) hit = 1;
                 }
 
                 // Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
@@ -286,7 +283,7 @@ namespace RayCasting.RayCasting
                 if (drawEnd >= _renderHeight) drawEnd = _renderHeight - 1;
 
                 // Texturing calculations
-                int texNum = _map[mapX, mapY] - 1; // 1 subtracted from it so that texture 0 can be used
+                int texNum = _map.map[mapX, mapY] - 1; // 1 subtracted from it so that texture 0 can be used
                 int HitTexWidth = _texture[texNum].Width;
                 int HitTexHeight = _texture[texNum].Height;
 
@@ -470,14 +467,14 @@ namespace RayCasting.RayCasting
             // Move froward if no wall in front of you
             if (W_Down)
             {
-                if (_map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
-                if (_map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
+                if (_map.map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
+                if (_map.map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
             }
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (_map[(int)(_posX  - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
-                if (_map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
+                if (_map.map[(int)(_posX  - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
+                if (_map.map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
             }
             // Rotate to the right
             if (D_Down)
