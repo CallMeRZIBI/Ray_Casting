@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RayCasting.RayCasting
@@ -86,13 +87,25 @@ namespace RayCasting.RayCasting
 
         public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
+            // TODO: make it multithreaded
             // Floor Casting
-            if(_DrawFloorCeiling) CastFloor();
+            if (_DrawFloorCeiling) 
+            {
+                //Thread FloorThread = new Thread(CastFloor);
+                //FloorThread.Start();                              // Not like this
+                CastFloor(); 
+            }
 
+            // TODO: make it multithreaded
             // Wall Ray Casting
+            //Thread WallThread = new Thread(CastWall);
+            //WallThread.Start();                                   // Not like this
             CastWall();
 
+            // TODO: probably make it mutlithreaded?
             // Sprite casting
+            //Thread SpriteThread = new Thread(CastSprites);
+            //SpriteThread.Start();                                 // Not like this
             CastSprites();
 
             // speed modifiers
