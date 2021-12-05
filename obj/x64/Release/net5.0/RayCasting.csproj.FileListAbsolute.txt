@@ -45,3 +45,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\SixLabo
 C:\Users\micha\source\repos\RayCasting\RayCasting\obj\x64\Release\net5.0\RayCasting.csproj.AssemblyReference.cache
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\textures\transparent_barrel.png
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\textures\greenlight_smaller.png
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Release\net5.0\Newtonsoft.Json.dll

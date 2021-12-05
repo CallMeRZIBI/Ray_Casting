@@ -55,6 +55,13 @@ namespace RayCasting.RayCasting
         private byte[] _floorColor;
         private byte[] _ceilingColor;
 
+        // Multithreading
+        private bool _isMultithreaded;
+        private int _threads;
+
+        // Debug
+        private int _X, _Y;
+
         public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
         {
             _screenWidth = screenWidth;
@@ -72,6 +79,8 @@ namespace RayCasting.RayCasting
 
             _moveSpeed = 0;
             _rotSpeed = 0;
+
+            _isMultithreaded = false;
         }
 
         public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
@@ -87,26 +96,67 @@ namespace RayCasting.RayCasting
 
         public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
-            // TODO: make it multithreaded
-            // Floor Casting
-            if (_DrawFloorCeiling) 
+            switch (_isMultithreaded)
             {
-                //Thread FloorThread = new Thread(CastFloor);
-                //FloorThread.Start();                              // Not like this
-                CastFloor(); 
+                case false:
+                    // Floor Casting
+                    if (_DrawFloorCeiling) CastFloor(0, _renderHeight);
+
+                    // Wall Casting
+                    CastWall(0, _renderWidth);
+
+                    // Sprite Casting
+                    CastSprites();
+                    break;
+                case true:
+                    // TODO: make it multithreaded
+                    // Multithreaded Floor Casting
+                    if (_DrawFloorCeiling)
+                    {
+                        int FloorThreads = _threads > 2 ? 2 : _threads;
+                        using(ManualResetEvent resetEvent = new ManualResetEvent(false))
+                        {
+                            List<int> list = new List<int>();
+                            foreach(int i in Enumerable.Range(0, FloorThreads))
+                            {
+                                list.Add(i);
+                                // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                                ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                                {
+                                    // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
+                                    CastFloor((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, ((i + 1 / (_threads > 2 ? 2 : _threads))) * _renderHeight);
+                                    if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
+                                }), list[i]);
+                            }
+
+                            resetEvent.WaitOne();
+                        }
+                    }
+
+                    // MultiThreaded Wall Casting
+                    int WallThreads = _threads;
+                    using (ManualResetEvent resetEvent = new ManualResetEvent(false))
+                    {
+                        List<int> list = new List<int>();
+                        foreach (int i in Enumerable.Range(0, WallThreads))
+                        {
+                            list.Add(i);
+                            // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                            ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                            {
+                                CastWall((i / _threads) * _renderWidth, ((i + 1) / _threads) * _renderWidth);
+                                if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
+                            }), list[i]);
+                        }
+
+                        resetEvent.WaitOne();
+                    }
+
+                    // TODO: probably make it mutlithreaded?
+                    // Sprite casting
+                    CastSprites();
+                    break;
             }
-
-            // TODO: make it multithreaded
-            // Wall Ray Casting
-            //Thread WallThread = new Thread(CastWall);
-            //WallThread.Start();                                   // Not like this
-            CastWall();
-
-            // TODO: probably make it mutlithreaded?
-            // Sprite casting
-            //Thread SpriteThread = new Thread(CastSprites);
-            //SpriteThread.Start();                                 // Not like this
-            CastSprites();
 
             // speed modifiers
             _moveSpeed = _deltaTime * 5.0; // Constant value is idk
@@ -131,9 +181,9 @@ namespace RayCasting.RayCasting
         }
 
         // Floor Casting
-        private void CastFloor()
+        private void CastFloor(int startRenderHeight, int endRenderHeight)
         {
-            for (int y = 0; y < _renderHeight; y++)
+            for (int y = startRenderHeight; y < endRenderHeight; y++)
             {
                 // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
                 float rayDirX0 = (float)(_dirX - _planeX);
@@ -187,6 +237,8 @@ namespace RayCasting.RayCasting
                     //_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte));
                     Array.Copy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], color, 3);   // The fastest implementation
+                    _Y = y;
+                    _X = x;
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
@@ -208,9 +260,9 @@ namespace RayCasting.RayCasting
         }
 
         // Casting walls
-        private void CastWall()
+        private void CastWall(int startRenderWidth, int endRenderWidth)
         {
-            for (int x = 0; x < _renderWidth; x++)
+            for (int x = startRenderWidth; x < endRenderWidth; x++)
             {
                 // Calculate ray position and direction
                 double cameraX = 2 * x / (double)_renderWidth - 1; // X-coordinate in camera space
@@ -316,7 +368,7 @@ namespace RayCasting.RayCasting
                 // Starting texture coordinate
                 double texPos = (drawStart - _renderHeight / 2 + lineHeight / 2) * step;
 
-                // Draw black if user doesn't want to draw floor and ceiling
+                // Draw only colors if user want it
                 if (!_DrawFloorCeiling)
                 {
                     // Draw before line
@@ -511,6 +563,16 @@ namespace RayCasting.RayCasting
                 _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
                 _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
             }
+        }
+
+        /// <summary>
+        /// Use Multithreading.
+        /// </summary>
+        /// <param name="threadNum">Number of threads</param>
+        public void MultiThreaded(int threadNum)
+        {
+            _isMultithreaded = true;
+            _threads = threadNum;
         }
 
         // Draws walls and ceilings as texture if user want it
