@@ -58,9 +58,8 @@ namespace RayCasting.RayCasting
         // Multithreading
         private bool _isMultithreaded;
         private int _threads;
-
-        // Debug
-        private int _X, _Y;
+        private byte[,,] _bufferFloor;
+        private byte[,,] _bufferWall;
 
         public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
         {
@@ -71,6 +70,8 @@ namespace RayCasting.RayCasting
             _renderHeight = (int)(_screenHeight * rederingScale);
 
             _buffer = new byte[_renderHeight, _renderWidth, 3]; // Y-coordinate first because it works per scanline
+            _bufferFloor = new byte[_renderHeight, _renderWidth, 3];
+            _bufferWall = new byte[_renderHeight, _renderWidth, 3];
             _ZBuffer = new double[_renderWidth];
             _texture = new List<Texture>();
 
@@ -109,11 +110,13 @@ namespace RayCasting.RayCasting
                     CastSprites();
                     break;
                 case true:
+                    // TODO: also you can create three different buffers for floorCasting, wallCasting, spriteCasting and render them multithreadly and then combine those buffers
+
                     // TODO: make it multithreaded
                     // Multithreaded Floor Casting
-                    if (_DrawFloorCeiling)
+                    /*if (_DrawFloorCeiling)
                     {
-                        int FloorThreads = _threads > 2 ? 2 : _threads;
+                        int FloorThreads = _threads;
                         using(ManualResetEvent resetEvent = new ManualResetEvent(false))
                         {
                             List<int> list = new List<int>();
@@ -124,7 +127,8 @@ namespace RayCasting.RayCasting
                                 ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                                 {
                                     // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
-                                    CastFloor((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, ((i + 1 / (_threads > 2 ? 2 : _threads))) * _renderHeight);
+                                    // it's probably because of how it's rendered, there are some calculations for perspective
+                                    CastFloor((i / _threads) * _renderHeight, ((i + 1 / _threads)) * _renderHeight);
                                     if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
                                 }), list[i]);
                             }
@@ -154,7 +158,10 @@ namespace RayCasting.RayCasting
 
                     // TODO: probably make it mutlithreaded?
                     // Sprite casting
-                    CastSprites();
+                    CastSprites();*/
+
+                    // Testing
+                    RunMultithreaded();
                     break;
             }
 
@@ -173,6 +180,65 @@ namespace RayCasting.RayCasting
 
             // Timing for frame time
             _timer.Start();
+        }
+
+        // Testing floor and wall casting at once
+        public void RunMultithreaded()
+        {
+            List<int> list = new List<int>();
+
+            // MultiThreaded Wall Casting
+            using (ManualResetEvent resetEvent = new ManualResetEvent(false))
+            {
+                int FloorThreads = _threads > 2 ? 2 : _threads;
+                if (_DrawFloorCeiling)
+                {
+                    foreach (int i in Enumerable.Range(0, FloorThreads))
+                    {
+                        list.Add(i);
+                        // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                        {
+                            // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
+                            // it's probably because of how it's rendered, there are some calculations for perspective
+                            CastFloor((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, ((i + 1 / (_threads > 2 ? 2 : _threads))) * _renderHeight);
+                            if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
+                        }), list[i]);
+                    }
+                }
+
+                int WallThreads = _threads;
+                foreach (int i in Enumerable.Range(0, WallThreads))
+                {
+                    list.Add(i + _threads > 2 ? 2 : _threads);
+                    // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                    {
+                        CastWall((i / _threads) * _renderWidth, ((i + 1) / _threads) * _renderWidth);
+                        if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
+                    }), list[i + _threads > 2 ? 2 : _threads]);
+                }
+
+                resetEvent.WaitOne();
+            }
+
+            Array.Copy(_bufferFloor, _buffer, _bufferFloor.Length);
+            for(int x = 0; x < _buffer.GetLength(0); x++)
+            {
+                for(int y = 0; y < _buffer.GetLength(1); y++)
+                {
+                    if (_bufferWall[x, y, 0] == 0 && _bufferWall[x, y, 1] == 0 && _bufferWall[x, y, 2] == 0)
+                    {
+                        continue;
+                    }
+                    _buffer[x, y, 0] = _bufferWall[x, y, 0];
+                    _buffer[x, y, 1] = _bufferWall[x, y, 1];
+                    _buffer[x, y, 2] = _bufferWall[x, y, 2];
+                }
+            }
+
+            // Sprite casting
+            CastSprites();
         }
 
         public void CalculateDelatTime()
@@ -197,7 +263,7 @@ namespace RayCasting.RayCasting
                 // Vertical position of the camera
                 float posZ = 0.5f * (float)_renderHeight;
 
-                // Horizontal distance from the camera to the floor for hte current row
+                // Horizontal distance from the camera to the floor for the current row
                 // 0.5 is the z position exactly in the middle between floor and ceiling
                 float rowDistance = posZ / p;
 
@@ -219,8 +285,8 @@ namespace RayCasting.RayCasting
                     int floorTexHeight = _texture[_floorTexture].Height;
 
                     // The cell coord is simply got from the integer parts of floorX and floorY
-                    int cellX = (int)(floorX);
-                    int cellY = (int)(floorY);
+                    int cellX = (int)floorX;
+                    int cellY = (int)floorY;
 
                     // Floor
                     // Get the texture coordinate from the fractional part
@@ -237,11 +303,14 @@ namespace RayCasting.RayCasting
                     //_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte));
                     Array.Copy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], color, 3);   // The fastest implementation
-                    _Y = y;
-                    _X = x;
-                    _buffer[y, x, 0] = color[0];
-                    _buffer[y, x, 1] = color[1];
-                    _buffer[y, x, 2] = color[2];
+                    //_buffer[y, x, 0] = color[0];
+                    //_buffer[y, x, 1] = color[1];
+                    //_buffer[y, x, 2] = color[2];
+
+                    // Total Mutlithreading test
+                    _bufferFloor[y, x, 0] = color[0];
+                    _bufferFloor[y, x, 1] = color[1];
+                    _bufferFloor[y, x, 2] = color[2];
 
                     // Ceiling
                     // Get the texture coordinate from the fractional part
@@ -252,9 +321,14 @@ namespace RayCasting.RayCasting
                     //_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte)); 
                     Array.Copy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], color, 3);     // The fastest implementation
-                    _buffer[_renderHeight - y - 1, x, 0] = color[0];
-                    _buffer[_renderHeight - y - 1, x, 1] = color[1];
-                    _buffer[_renderHeight - y - 1, x, 2] = color[2];
+                    //_buffer[_renderHeight - y - 1, x, 0] = color[0];
+                    //_buffer[_renderHeight - y - 1, x, 1] = color[1];
+                    //_buffer[_renderHeight - y - 1, x, 2] = color[2];
+
+                    // Total Mutlithreading test
+                    _bufferFloor[_renderHeight - y - 1, x, 0] = color[0];
+                    _bufferFloor[_renderHeight - y - 1, x, 1] = color[1];
+                    _bufferFloor[_renderHeight - y - 1, x, 2] = color[2];
                 }
             }
         }
@@ -408,9 +482,14 @@ namespace RayCasting.RayCasting
                         color[1] = (byte)(color[1] / (byte)2);
                         color[2] = (byte)(color[2] / (byte)2);
                     }
-                    _buffer[y, x, 0] = color[0];
-                    _buffer[y, x, 1] = color[1];
-                    _buffer[y, x, 2] = color[2];
+                    //_buffer[y, x, 0] = color[0];
+                    //_buffer[y, x, 1] = color[1];
+                    //_buffer[y, x, 2] = color[2];
+
+                    // Total Mutlithreading test
+                    _bufferWall[y, x, 0] = color[0];
+                    _bufferWall[y, x, 1] = color[1];
+                    _bufferWall[y, x, 2] = color[2];
                 }
 
                 // SET THE ZBUFFER FOR THE SPRITE CASTING

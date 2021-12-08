@@ -291,7 +291,7 @@ namespace RayCasting
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indicies.Length * sizeof(uint), indicies, BufferUsageHint.StaticDraw);
 
-                RCaster.MultiThreaded(8);
+                RCaster.MultiThreaded(4);
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
                 RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
