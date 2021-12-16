@@ -46,3 +46,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\TexturedS
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\textures\transparent_barrel.png
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\textures\greenlight_smaller.png
 C:\Users\micha\source\repos\RayCasting\RayCasting\bin\x64\Debug\net5.0\Newtonsoft.Json.dll
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\x64\Debug\net5.0\RayCasting.csproj.CopyComplete

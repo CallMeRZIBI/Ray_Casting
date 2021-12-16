@@ -71,7 +71,7 @@ namespace RayCasting.RayCasting
 
             _buffer = new byte[_renderHeight, _renderWidth, 3]; // Y-coordinate first because it works per scanline
             _bufferFloor = new byte[_renderHeight, _renderWidth, 3];
-            _bufferWall = new byte[_renderHeight, _renderWidth, 3];
+            _bufferWall = new byte[_renderHeight, _renderWidth, 4];
             _ZBuffer = new double[_renderWidth];
             _texture = new List<Texture>();
 
@@ -114,9 +114,9 @@ namespace RayCasting.RayCasting
 
                     // TODO: make it multithreaded
                     // Multithreaded Floor Casting
-                    /*if (_DrawFloorCeiling)
+                    if (_DrawFloorCeiling)
                     {
-                        int FloorThreads = _threads;
+                        int FloorThreads = _threads > 2 ? 2 : _threads;
                         using(ManualResetEvent resetEvent = new ManualResetEvent(false))
                         {
                             List<int> list = new List<int>();
@@ -128,7 +128,7 @@ namespace RayCasting.RayCasting
                                 {
                                     // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
                                     // it's probably because of how it's rendered, there are some calculations for perspective
-                                    CastFloor((i / _threads) * _renderHeight, ((i + 1 / _threads)) * _renderHeight);
+                                    CastFloor((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, (i + 1 / (_threads > 2 ? 2 : _threads)) * _renderHeight);
                                     if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
                                 }), list[i]);
                             }
@@ -158,10 +158,10 @@ namespace RayCasting.RayCasting
 
                     // TODO: probably make it mutlithreaded?
                     // Sprite casting
-                    CastSprites();*/
+                    CastSprites();
 
                     // Testing
-                    RunMultithreaded();
+                    //RunMultithreaded();
                     break;
             }
 
@@ -190,50 +190,63 @@ namespace RayCasting.RayCasting
             // MultiThreaded Wall Casting
             using (ManualResetEvent resetEvent = new ManualResetEvent(false))
             {
-                int FloorThreads = _threads > 2 ? 2 : _threads;
-                if (_DrawFloorCeiling)
-                {
-                    foreach (int i in Enumerable.Range(0, FloorThreads))
-                    {
-                        list.Add(i);
-                        // Closure for anonymous function call begins here, because foreach works a bit differently than for.
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
-                        {
-                            // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
-                            // it's probably because of how it's rendered, there are some calculations for perspective
-                            CastFloor((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, ((i + 1 / (_threads > 2 ? 2 : _threads))) * _renderHeight);
-                            if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
-                        }), list[i]);
-                    }
-                }
 
                 int WallThreads = _threads;
-                foreach (int i in Enumerable.Range(0, WallThreads))
+                /*foreach (int i in Enumerable.Range(0, WallThreads))
                 {
-                    list.Add(i + _threads > 2 ? 2 : _threads);
+                    list.Add(i);
                     // Closure for anonymous function call begins here, because foreach works a bit differently than for.
                     ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                     {
                         CastWall((i / _threads) * _renderWidth, ((i + 1) / _threads) * _renderWidth);
                         if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
-                    }), list[i + _threads > 2 ? 2 : _threads]);
+                    }), list[i]);
+                }*/
+                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((0 / _threads) * _renderWidth, (1 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 0);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((1 / _threads) * _renderWidth, (2 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 1);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((2 / _threads) * _renderWidth, (3 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 2);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((3 / _threads) * _renderWidth, (4 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 3);
+
+                int FloorThreads = _threads > 2 ? 2 : _threads;
+                if (_DrawFloorCeiling)
+                {
+                    /*foreach (int i in Enumerable.Range(0, FloorThreads))
+                    {
+                        list.Add(i + _threads);
+                        // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                        {
+                            // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
+                            // it's probably because of how it's rendered, there are some calculations for perspective
+                            CastFloorMultithreaded((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, (i + 1 / (_threads > 2 ? 2 : _threads)) * _renderHeight);
+                            if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
+                        }), list[i + _threads]);
+                    }*/
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((0 / 4) * _renderHeight, (2 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 4);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((2 / 4) * _renderHeight, (4 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 5);
+                    //ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((2 / 4) * _renderHeight, (3 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 6);
+                    //ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((3 / 4) * _renderHeight, (4 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 7);
                 }
 
                 resetEvent.WaitOne();
             }
 
-            Array.Copy(_bufferFloor, _buffer, _bufferFloor.Length);
             for(int x = 0; x < _buffer.GetLength(0); x++)
             {
                 for(int y = 0; y < _buffer.GetLength(1); y++)
                 {
-                    if (_bufferWall[x, y, 0] == 0 && _bufferWall[x, y, 1] == 0 && _bufferWall[x, y, 2] == 0)
+                    if (_bufferWall[x,y,3] == 255)
                     {
-                        continue;
+                        _buffer[x, y, 0] = _bufferFloor[x, y, 0];
+                        _buffer[x, y, 1] = _bufferFloor[x, y, 1];
+                        _buffer[x, y, 2] = _bufferFloor[x, y, 2];
                     }
-                    _buffer[x, y, 0] = _bufferWall[x, y, 0];
-                    _buffer[x, y, 1] = _bufferWall[x, y, 1];
-                    _buffer[x, y, 2] = _bufferWall[x, y, 2];
+                    else
+                    {
+                        _buffer[x, y, 0] = _bufferWall[x, y, 0];
+                        _buffer[x, y, 1] = _bufferWall[x, y, 1];
+                        _buffer[x, y, 2] = _bufferWall[x, y, 2];
+                    }
                 }
             }
 
@@ -303,14 +316,14 @@ namespace RayCasting.RayCasting
                     //_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte));
                     Array.Copy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], color, 3);   // The fastest implementation
-                    //_buffer[y, x, 0] = color[0];
-                    //_buffer[y, x, 1] = color[1];
-                    //_buffer[y, x, 2] = color[2];
+                    _buffer[y, x, 0] = color[0];
+                    _buffer[y, x, 1] = color[1];
+                    _buffer[y, x, 2] = color[2];
 
                     // Total Mutlithreading test
-                    _bufferFloor[y, x, 0] = color[0];
-                    _bufferFloor[y, x, 1] = color[1];
-                    _bufferFloor[y, x, 2] = color[2];
+                    //_bufferFloor[y, x, 0] = color[0];
+                    //_bufferFloor[y, x, 1] = color[1];
+                    //_bufferFloor[y, x, 2] = color[2];
 
                     // Ceiling
                     // Get the texture coordinate from the fractional part
@@ -321,14 +334,14 @@ namespace RayCasting.RayCasting
                     //_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte)); 
                     Array.Copy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], color, 3);     // The fastest implementation
-                    //_buffer[_renderHeight - y - 1, x, 0] = color[0];
-                    //_buffer[_renderHeight - y - 1, x, 1] = color[1];
-                    //_buffer[_renderHeight - y - 1, x, 2] = color[2];
+                    _buffer[_renderHeight - y - 1, x, 0] = color[0];
+                    _buffer[_renderHeight - y - 1, x, 1] = color[1];
+                    _buffer[_renderHeight - y - 1, x, 2] = color[2];
 
                     // Total Mutlithreading test
-                    _bufferFloor[_renderHeight - y - 1, x, 0] = color[0];
-                    _bufferFloor[_renderHeight - y - 1, x, 1] = color[1];
-                    _bufferFloor[_renderHeight - y - 1, x, 2] = color[2];
+                    //_bufferFloor[_renderHeight - y - 1, x, 0] = color[0];
+                    //_bufferFloor[_renderHeight - y - 1, x, 1] = color[1];
+                    //_bufferFloor[_renderHeight - y - 1, x, 2] = color[2];
                 }
             }
         }
@@ -462,6 +475,25 @@ namespace RayCasting.RayCasting
                     }
                 }
 
+                // _bufferWall test
+                // Draw before line
+                /*for (int i = 0; i < drawStart; i++)
+                {
+                    _bufferWall[i, x, 0] = 0;
+                    _bufferWall[i, x, 1] = 0;
+                    _bufferWall[i, x, 2] = 0;
+                    _bufferWall[i, x, 3] = 255;
+                }
+
+                // Draw after line
+                for (int i = drawEnd; i < _renderHeight; i++)
+                {
+                    _bufferWall[i, x, 0] = 0;
+                    _bufferWall[i, x, 1] = 0;
+                    _bufferWall[i, x, 2] = 0;
+                    _bufferWall[i, x, 3] = 255;
+                }*/
+
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -482,14 +514,15 @@ namespace RayCasting.RayCasting
                         color[1] = (byte)(color[1] / (byte)2);
                         color[2] = (byte)(color[2] / (byte)2);
                     }
-                    //_buffer[y, x, 0] = color[0];
-                    //_buffer[y, x, 1] = color[1];
-                    //_buffer[y, x, 2] = color[2];
+                    _buffer[y, x, 0] = color[0];
+                    _buffer[y, x, 1] = color[1];
+                    _buffer[y, x, 2] = color[2];
 
                     // Total Mutlithreading test
-                    _bufferWall[y, x, 0] = color[0];
-                    _bufferWall[y, x, 1] = color[1];
-                    _bufferWall[y, x, 2] = color[2];
+                    //_bufferWall[y, x, 0] = color[0];
+                    //_bufferWall[y, x, 1] = color[1];
+                    //_bufferWall[y, x, 2] = color[2];
+                    //_bufferWall[y, x, 3] = 0;
                 }
 
                 // SET THE ZBUFFER FOR THE SPRITE CASTING
