@@ -17,6 +17,16 @@ RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster(screen
 
 #
 
+## Multi Threaded
+### You can also run raycaster multithreadedly by calling this method
+```C#
+rayCaster.MultiThreaded(threadNum);
+```
+and give it those parameters
+- threadNum - int - number of threads you give it
+
+#
+
 ### To create map that you can walk on you have to call this method
 ```C#
 rayCaster.CreateMap(map, StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
