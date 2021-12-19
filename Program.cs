@@ -132,8 +132,8 @@ namespace RayCasting
 
             // Textured Raycaster
             // Rendering things
-            int screenWidth = 640;
-            int screenHeight = 360;
+            int screenWidth = 1280;
+            int screenHeight = 720;
             float renderingScale = 1.0f;
 
             int VertexArrayObject = 0;
