@@ -101,7 +101,7 @@ namespace RayCasting.RayCasting
             {
                 case false:
                     // Floor Casting
-                    if (_DrawFloorCeiling) CastFloor(0,  _renderWidth/4); CastFloor( _renderWidth / 4, _renderWidth / 2); CastFloor(_renderWidth / 2, 3 * _renderWidth / 4); CastFloor(3 * _renderWidth / 4, _renderWidth);
+                    if (_DrawFloorCeiling) CastFloor(0, _renderWidth);
 
                     // Wall Casting
                     CastWall(0, _renderWidth);
@@ -126,7 +126,6 @@ namespace RayCasting.RayCasting
                                 // Closure for anonymous function call begins here, because foreach works a bit differently than for.
                                 ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                                 {
-                                    // it's probably because of how it's rendered, there are some calculations for perspective
                                     CastFloor(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
                                     if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
                                 }), list[i]);
@@ -299,6 +298,10 @@ namespace RayCasting.RayCasting
                 // Real world coordinates of the leftmost column, this will be updated as we step to the right
                 float floorX = (float)_posX + rowDistance * rayDirX0;
                 float floorY = (float)_posY + rowDistance * rayDirY0;
+
+                // Adding the offset to floor X and Y because in multithreading the rendering starts from different points
+                floorX += floorStepX * startRenderWidth;
+                floorY += floorStepY * startRenderWidth;
 
                 for (int x = startRenderWidth; x < endRenderWidth; ++x)
                 {
@@ -543,8 +546,10 @@ namespace RayCasting.RayCasting
         // Sprite Casting
         private void CastSprites()
         {
+            Stopwatch debug = new Stopwatch();
+            debug.Start();
             // Sort sprites from far to close
-            for(int i = 0; i < _sprites.Count; i++)
+            for (int i = 0; i < _sprites.Count; i++)
             {
                 _spriteOrder[i] = i;
                 _spriteDistance[i] = (_posX - _sprites[i].posX) * (_posX - _sprites[i].posX) + (_posY - _sprites[i].posY) * (_posY - _sprites[i].posY); // Sqrt not taken, unneeded
@@ -618,14 +623,16 @@ namespace RayCasting.RayCasting
                             // TODO: Change the invisible color to alfa = 0 or make calculations so you can have semi transparent sprites
                             if (color[3] != 0) // Paint pixel if alfa isn't maximum
                             {
-                                _buffer[y, stripe, 0] = (byte)((color[0] * color[3] + _buffer[y, stripe, 0] * (255 - color[3])) / 255); // Uses transparency
-                                _buffer[y, stripe, 1] = (byte)((color[1] * color[3] + _buffer[y, stripe, 1] * (255 - color[3])) / 255); 
-                                _buffer[y, stripe, 2] = (byte)((color[2] * color[3] + _buffer[y, stripe, 2] * (255 - color[3])) / 255);
+                                _buffer[y, stripe, 0] = (byte)((color[0] * color[3] + _buffer[y, stripe, 0] * (255 - color[3])) >> 8); // Uses transparency, now using byte shifting instead of dividing,
+                                _buffer[y, stripe, 1] = (byte)((color[1] * color[3] + _buffer[y, stripe, 1] * (255 - color[3])) >> 8); // I need to divide by 255 but 2 power 8 is 256 so it's not as precise, but I think it's negligible
+                                _buffer[y, stripe, 2] = (byte)((color[2] * color[3] + _buffer[y, stripe, 2] * (255 - color[3])) >> 8);
                             }
                         }
                     }
                 }
             }
+            debug.Stop();
+            Console.WriteLine(debug.Elapsed.TotalMilliseconds);
         }
 
         // Using reference so it will change the passed arrays and won't just copy data from them and change them only inside the method
