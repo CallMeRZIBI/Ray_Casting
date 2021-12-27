@@ -546,8 +546,6 @@ namespace RayCasting.RayCasting
         // Sprite Casting
         private void CastSprites()
         {
-            Stopwatch debug = new Stopwatch();
-            debug.Start();
             // Sort sprites from far to close
             for (int i = 0; i < _sprites.Count; i++)
             {
@@ -631,8 +629,6 @@ namespace RayCasting.RayCasting
                     }
                 }
             }
-            debug.Stop();
-            Console.WriteLine(debug.Elapsed.TotalMilliseconds);
         }
 
         // Using reference so it will change the passed arrays and won't just copy data from them and change them only inside the method
