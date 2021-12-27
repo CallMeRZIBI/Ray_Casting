@@ -3,6 +3,52 @@ My ray casting engine project, most of the calculations came from this beautiful
 
 ## **Simple Ray Caster**
 
+![Untextured Ray Caster](https://github.com/CallMeRZIBI/blob/Development/readme/untextured_ray_caster.gif)
+
+### When creating simple ray caster you must give it those arguments:
+```C#
+RayCasting.UntexturedRayCaster SimpleRayCaster = new UtexturedRayCaster(screenWidth, screenHeight, renderingScale);
+```
+- screenWidth - int 
+- screenHeight - int
+- renderingScale - int - scales the rendering width and size (default is 1) *isn't working at the moment
+
+#
+
+### To create map that you can walk on you have to call this method
+```C#
+SimpleRayCaster.CreateMap(map, StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
+```
+and give it those parameters
+- map - 2D array of numbers which are corresponding to indexes of textures - 1 (0 isn't anything)
+- StartingPosX - double which corresponds to position of player X axis
+- StartingPosY - double which corresponds to position of player Y axis
+- dirX - double (default is -1) correspond to rotation
+- dirY - double (default is 0) correspond to rotation
+- planeX - double (default is 0) correspond to
+- planeY - double (default is 0.66) correspond to
+
+#
+
+### Update frame
+```C#
+SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
+```
+and give it those parameters as arguments for implemented movement
+- W_Down - bool if W is pressed (true = pressed)
+- A_Down - bool if A is pressed (true = pressed)
+- S_Down - bool if S is pressed (true = pressed)
+- D_Down - bool if D is pressed (true = pressed)
+
+#
+
+### Get frame from simple ray caster
+```C#
+SimpleRayCaster.GetGLVertices();
+```
+### output:
+- 2D float array of vertices
+
 #
 
 ## **Ray Caster**
