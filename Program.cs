@@ -15,7 +15,7 @@ namespace RayCasting
         {
             Console.WriteLine("Ray caster!");
 
-            int mapWidth = 24;
+            /*int mapWidth = 24;
             int mapHeight = 24;
             int screenWidth = 1280;
             int screenHeight = 720;
@@ -128,9 +128,9 @@ namespace RayCasting
                 window.SwapBuffers();
             };
 
-            window.Run();
+            window.Run();*/
 
-            /*// Textured Raycaster
+            // Textured Raycaster
             // Rendering things
             int screenWidth = 1280;
             int screenHeight = 720;
@@ -342,7 +342,7 @@ namespace RayCasting
                 GL.Viewport(0, 0, window2.Size.X, window2.Size.Y);
             };
 
-            window2.Run();*/
+            window2.Run();
         }
 
         private static void DrawPixelArray(byte[,,] pixels, int width, int height)
