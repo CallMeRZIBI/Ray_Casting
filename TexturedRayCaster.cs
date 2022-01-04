@@ -45,6 +45,8 @@ namespace RayCasting
         private double _moveSpeed;
         private double _rotSpeed;
 
+        private bool _builtInMovement;
+
         private bool _DrawFloorCeiling = false;
 
         // Floor Ceiling Texture
@@ -81,6 +83,7 @@ namespace RayCasting
             _moveSpeed = 0;
             _rotSpeed = 0;
 
+            _builtInMovement = false;
             _isMultithreaded = false;
         }
 
@@ -173,15 +176,14 @@ namespace RayCasting
             _timer.Reset();
 
             // Moving
-            // TODO: Add some boundaries around player for normal collision
-            Move(W_Down, A_Down, S_Down, D_Down);
+            if(_builtInMovement) Move(W_Down, A_Down, S_Down, D_Down);
 
             // Timing for frame time
             _timer.Start();
         }
 
         // Testing floor and wall casting at once
-        public void RunMultithreaded()
+        /*public void RunMultithreaded()
         {
             List<int> list = new List<int>();
 
@@ -262,7 +264,7 @@ namespace RayCasting
 
             // Sprite casting
             CastSprites();
-        }
+        }*/
 
         public void CalculateDelatTime()
         {
@@ -651,6 +653,7 @@ namespace RayCasting
         }
 
         // Movement
+        // TODO: Add some boundaries around player for normal collision
         private void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
             // Move froward if no wall in front of you
@@ -689,6 +692,36 @@ namespace RayCasting
             }
         }
 
+        // User can use default movement
+        /// <summary>
+        /// Uses default movement with W S for moving and A D for rotating
+        /// </summary>
+        public void UseDefaultMovement()
+        {
+            _builtInMovement = true;
+        }
+
+        // User can set camera position and direction by himself if default movement is not choosen
+        // TODO: Probably create Camera class or struct
+        /// <summary>
+        /// Sets camera position and rotation when use default movement is not choosen
+        /// </summary>
+        /// <param name="PosX">X position on map grid</param>
+        /// <param name="PosY">Y position on map grid</param>
+        /// <param name="DirX">X direction (to which X position you are rotated)</param>
+        /// <param name="DirY">Y direction (to which Y position you are rotated)</param>
+        public void CameraPos(double PosX, double PosY, double DirX, double DirY)
+        {
+            if (!_builtInMovement) // prevent from updating position when default movement is used
+            {
+                _posX = PosX;
+                _posY = PosY;
+                _dirX = DirX;
+                _dirY = DirY;
+            }
+        }
+
+        // Runs rendering multithreaded
         /// <summary>
         /// Use Multithreading.
         /// </summary>

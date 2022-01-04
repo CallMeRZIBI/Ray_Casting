@@ -32,6 +32,8 @@ namespace RayCasting
         private double _planeX;
         private double _planeY;
 
+        private bool _builtInMovement;
+
         private double _moveSpeed;
         private double _rotSpeed;
 
@@ -205,39 +207,42 @@ namespace RayCasting
             _timer.Reset();
 
             // Moving
-            // Move froward if no wall in front of you
-            if (W_Down)
+            if (_builtInMovement)
             {
-                if (_map.map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
-                if (_map.map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
-            }
-            // Move backwards if no wall behind you
-            if (S_Down)
-            {
-                if (_map.map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
-                if (_map.map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
-            }
-            // Rotate to the right
-            if (D_Down)
-            {
-                // both camera direction and camera plane must be rotated
-                double oldDirX = _dirX;
-                _dirX = _dirX * Math.Cos(-_rotSpeed) - _dirY * Math.Sin(-_rotSpeed);
-                _dirY = oldDirX * Math.Sin(-_rotSpeed) + _dirY * Math.Cos(-_rotSpeed);
-                double oldPlaneX = _planeX;
-                _planeX = _planeX * Math.Cos(-_rotSpeed) - _planeY * Math.Sin(-_rotSpeed);
-                _planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _planeY * Math.Cos(-_rotSpeed);
-            }
-            // Rotate to the left
-            if (A_Down)
-            {
-                // both camera direction and camera plane must be rotated
-                double oldDirX = _dirX;
-                _dirX = _dirX * Math.Cos(_rotSpeed) - _dirY * Math.Sin(_rotSpeed);
-                _dirY = oldDirX * Math.Sin(_rotSpeed) + _dirY * Math.Cos(_rotSpeed);
-                double oldPlaneX = _planeX;
-                _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
-                _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
+                // Move froward if no wall in front of you
+                if (W_Down)
+                {
+                    if (_map.map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
+                    if (_map.map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
+                }
+                // Move backwards if no wall behind you
+                if (S_Down)
+                {
+                    if (_map.map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
+                    if (_map.map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
+                }
+                // Rotate to the right
+                if (D_Down)
+                {
+                    // both camera direction and camera plane must be rotated
+                    double oldDirX = _dirX;
+                    _dirX = _dirX * Math.Cos(-_rotSpeed) - _dirY * Math.Sin(-_rotSpeed);
+                    _dirY = oldDirX * Math.Sin(-_rotSpeed) + _dirY * Math.Cos(-_rotSpeed);
+                    double oldPlaneX = _planeX;
+                    _planeX = _planeX * Math.Cos(-_rotSpeed) - _planeY * Math.Sin(-_rotSpeed);
+                    _planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _planeY * Math.Cos(-_rotSpeed);
+                }
+                // Rotate to the left
+                if (A_Down)
+                {
+                    // both camera direction and camera plane must be rotated
+                    double oldDirX = _dirX;
+                    _dirX = _dirX * Math.Cos(_rotSpeed) - _dirY * Math.Sin(_rotSpeed);
+                    _dirY = oldDirX * Math.Sin(_rotSpeed) + _dirY * Math.Cos(_rotSpeed);
+                    double oldPlaneX = _planeX;
+                    _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
+                    _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
+                }
             }
 
             // Timing for frame times
@@ -247,6 +252,35 @@ namespace RayCasting
         public void CalculateDelatTime()
         {
             _deltaTime = _timer.Elapsed.TotalSeconds;
+        }
+
+        // User can use default movement
+        /// <summary>
+        /// Uses default movement with W S for moving and A D for rotating
+        /// </summary>
+        public void UseDefaultMovement()
+        {
+            _builtInMovement = true;
+        }
+
+        // User can set camera position and direction by himself if default movement is not choosen
+        // TODO: Probably create Camera class or struct
+        /// <summary>
+        /// Sets camera position and rotation when use default movement is not choosen
+        /// </summary>
+        /// <param name="PosX">X position on map grid</param>
+        /// <param name="PosY">Y position on map grid</param>
+        /// <param name="DirX">X direction (to which X position you are rotated)</param>
+        /// <param name="DirY">Y direction (to which Y position you are rotated)</param>
+        public void CameraPos(double PosX, double PosY, double DirX, double DirY)
+        {
+            if (!_builtInMovement) // prevent from updating position when default movement is used
+            {
+                _posX = PosX;
+                _posY = PosY;
+                _dirX = DirX;
+                _dirY = DirY;
+            }
         }
 
         public float[] GetGLVertices()

@@ -181,6 +181,7 @@ namespace TexturedRayCastingDemo
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indicies.Length * sizeof(uint), indicies, BufferUsageHint.StaticDraw);
 
+                RCaster.UseDefaultMovement();
                 RCaster.MultiThreaded(8);
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use

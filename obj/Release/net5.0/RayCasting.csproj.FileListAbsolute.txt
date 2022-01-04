@@ -10,3 +10,15 @@ C:\Users\micha\source\repos\RayCastingLibrary\RayCasting\RayCasting\obj\Release\
 C:\Users\micha\source\repos\RayCastingLibrary\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.dll
 C:\Users\micha\source\repos\RayCastingLibrary\RayCasting\RayCasting\obj\Release\net5.0\ref\RayCasting.dll
 C:\Users\micha\source\repos\RayCastingLibrary\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.pdb
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.csproj.AssemblyReference.cache
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.AssemblyInfoInputs.cache
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.AssemblyInfo.cs
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.csproj.CoreCompileInputs.cache
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.dll
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\ref\RayCasting.dll
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net5.0\RayCasting.pdb
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\Release\net5.0\RayCasting.deps.json
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\Release\net5.0\RayCasting.dll
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\Release\net5.0\ref\RayCasting.dll
+C:\Users\micha\source\repos\RayCasting\RayCasting\bin\Release\net5.0\RayCasting.pdb
