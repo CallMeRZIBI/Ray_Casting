@@ -30,6 +30,26 @@ and give it those parameters
 
 #
 
+### There is default movement with W A S D implemented, to use it you have to call this method
+```C#
+SimpleRayCaster.UseDefaultMovement();
+```
+
+#
+
+### Move Camera
+To move camera you can call this method:
+```C#
+SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
+```
+and pass it those arguments:
+- PosX is double containing the X position of camera
+- PosY is double containing the Y position of camera
+- DirX is double containing the X position towards which camera is rotated
+- DirY is double containing the Y position towards which camera is rotated
+
+#
+
 ### Update frame
 ```C#
 SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
@@ -106,6 +126,26 @@ rayCaster.UseFloorCeilingTextures(TexFloorIndex, TexCeilingIndex);
 and give it those parameters as argument
 - TexFloorIndex - int - index of texture in textures list that you give to ray caster
 - TexCeilingIndex - int - index of texture in textures list that you give to ray caster
+
+#
+
+### There is default movement with W A S D implemented, to use it you have to call this method
+```C#
+SimpleRayCaster.UseDefaultMovement();
+```
+
+#
+
+### Move Camera
+To move camera you can call this method:
+```C#
+SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
+```
+and pass it those arguments:
+- PosX is double containing the X position of camera
+- PosY is double containing the Y position of camera
+- DirX is double containing the X position towards which camera is rotated
+- DirY is double containing the Y position towards which camera is rotated
 
 #
 

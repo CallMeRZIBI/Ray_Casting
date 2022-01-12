@@ -98,6 +98,7 @@ namespace RayCasting
             _planeY = planeY;
         }
 
+        // Make the arguments optional
         public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
             switch (_isMultithreaded)
