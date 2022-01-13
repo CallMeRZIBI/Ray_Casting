@@ -55,10 +55,10 @@ and pass it those arguments:
 SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
 ```
 and give it those parameters as arguments for implemented movement
-- W_Down - bool if W is pressed (true = pressed)
-- A_Down - bool if A is pressed (true = pressed)
-- S_Down - bool if S is pressed (true = pressed)
-- D_Down - bool if D is pressed (true = pressed)
+- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
+- A_Down (default is false) - bool if A is pressed (true = pressed)
+- S_Down (default is false) - bool if S is pressed (true = pressed)
+- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 
@@ -151,13 +151,13 @@ and pass it those arguments:
 
 ### Update frame
 ```C#
-rayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
+SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
 ```
 and give it those parameters as arguments for implemented movement
-- W_Down - bool if W is pressed (true = pressed)
-- A_Down - bool if A is pressed (true = pressed)
-- S_Down - bool if S is pressed (true = pressed)
-- D_Down - bool if D is pressed (true = pressed)
+- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
+- A_Down (default is false) - bool if A is pressed (true = pressed)
+- S_Down (default is false) - bool if S is pressed (true = pressed)
+- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 

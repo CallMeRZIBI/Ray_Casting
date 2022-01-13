@@ -71,7 +71,7 @@ namespace RayCasting
         }
 
         // Update RayCast calculations with given pos and save vertices in OpenGL format which later can be fromated
-        public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        public void UpdateRayCast(bool W_Down = false, bool A_Down = false, bool S_Down = false, bool D_Down = false)
         {
             for (int x = 0; x < _renderWidth; x++)
             {

@@ -33,3 +33,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\Demos\UntexturedRayCaster\obj\
 C:\Users\micha\source\repos\RayCasting\RayCasting\Demos\UntexturedRayCaster\obj\Release\net5.0\ref\UntexturedRayCastingDemo.dll
 C:\Users\micha\source\repos\RayCasting\RayCasting\Demos\UntexturedRayCaster\obj\Release\net5.0\UntexturedRayCastingDemo.pdb
 C:\Users\micha\source\repos\RayCasting\RayCasting\Demos\UntexturedRayCaster\obj\Release\net5.0\UntexturedRayCastingDemo.genruntimeconfig.cache
+C:\Users\micha\source\repos\RayCasting\RayCasting\Demos\UntexturedRayCaster\obj\Release\net5.0\UntexturedRayCastingDemo.csproj.AssemblyReference.cache

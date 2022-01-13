@@ -99,7 +99,7 @@ namespace RayCasting
         }
 
         // Make the arguments optional
-        public void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        public void UpdateRayCast(bool W_Down = false, bool A_Down = false, bool S_Down = false, bool D_Down = false)
         {
             switch (_isMultithreaded)
             {
