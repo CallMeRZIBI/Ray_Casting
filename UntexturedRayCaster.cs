@@ -209,17 +209,49 @@ namespace RayCasting
             // Moving
             if (_builtInMovement)
             {
+                float radius = 0.25f;
+
                 // Move froward if no wall in front of you
                 if (W_Down)
                 {
-                    if (_map.map[(int)(_posX + _dirX * _moveSpeed), (int)_posY] == 0) _posX += _dirX * _moveSpeed;
-                    if (_map.map[(int)_posX, (int)(_posY + _dirY * _moveSpeed)] == 0) _posY += _dirY * _moveSpeed;
+                    // TODO: Figure out how to make circle collider around camera
+                    // This is square collider
+                    if (_dirX > 0)
+                    {
+                        if (_map.map[(int)((_posX + _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
+                    }
+                    else
+                    {
+                        if (_map.map[(int)((_posX + _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
+                    }
+                    if (_dirY > 0)
+                    {
+                        if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) + radius)] == 0) _posY += _dirY * _moveSpeed;
+                    }
+                    else
+                    {
+                        if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) - radius)] == 0) _posY += _dirY * _moveSpeed;
+                    }
                 }
                 // Move backwards if no wall behind you
                 if (S_Down)
                 {
-                    if (_map.map[(int)(_posX - _dirX * _moveSpeed), (int)_posY] == 0) _posX -= _dirX * _moveSpeed;
-                    if (_map.map[(int)_posX, (int)(_posY - _dirY * _moveSpeed)] == 0) _posY -= _dirY * _moveSpeed;
+                    if (_dirX > 0)
+                    {
+                        if (_map.map[(int)((_posX - _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
+                    }
+                    else
+                    {
+                        if (_map.map[(int)((_posX - _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
+                    }
+                    if (_dirY > 0)
+                    {
+                        if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) - radius)] == 0) _posY -= _dirY * _moveSpeed;
+                    }
+                    else
+                    {
+                        if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) + radius)] == 0) _posY -= _dirY * _moveSpeed;
+                    }
                 }
                 // Rotate to the right
                 if (D_Down)
