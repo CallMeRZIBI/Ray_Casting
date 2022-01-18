@@ -45,8 +45,6 @@ namespace RayCasting
         private double _moveSpeed;
         private double _rotSpeed;
 
-        private bool _builtInMovement;
-
         private bool _DrawFloorCeiling = false;
 
         // Floor Ceiling Texture
@@ -60,8 +58,6 @@ namespace RayCasting
         // Multithreading
         private bool _isMultithreaded;
         private int _threads;
-        private byte[,,] _bufferFloor;
-        private byte[,,] _bufferWall;
 
         public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
         {
@@ -72,8 +68,6 @@ namespace RayCasting
             _renderHeight = (int)(_screenHeight * rederingScale);
 
             _buffer = new byte[_renderHeight, _renderWidth, 3]; // Y-coordinate first because it works per scanline
-            _bufferFloor = new byte[_renderHeight, _renderWidth, 3];
-            _bufferWall = new byte[_renderHeight, _renderWidth, 4];
             _ZBuffer = new double[_renderWidth];
             _texture = new List<Texture>();
 
@@ -83,7 +77,6 @@ namespace RayCasting
             _moveSpeed = 0;
             _rotSpeed = 0;
 
-            _builtInMovement = false;
             _isMultithreaded = false;
         }
 
@@ -99,7 +92,7 @@ namespace RayCasting
         }
 
         // Make the arguments optional
-        public void UpdateRayCast(bool W_Down = false, bool A_Down = false, bool S_Down = false, bool D_Down = false)
+        public void UpdateRayCast()
         {
             switch (_isMultithreaded)
             {
@@ -114,7 +107,7 @@ namespace RayCasting
                     CastSprites();
                     break;
                 case true:
-                    // TODO: also you can create three different buffers for floorCasting, wallCasting, spriteCasting and render them multithreadly and then combine those buffers - working on it
+                    // TODO: also you can create three different buffers for floorCasting, wallCasting, spriteCasting and render them multithreadly and then combine those buffers - was working on it
 
                     // TODO: in CastFloor fix the screen space when running from multiple threads it uses the first
                     // Multithreaded Floor Casting
@@ -162,110 +155,9 @@ namespace RayCasting
                     // Sprite casting
                     CastSprites();
 
-                    // Testing
-                    //RunMultithreaded();
                     break;
             }
-
-            // speed modifiers
-            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
-            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
-
-            // timing for input and FPS counter
-            _timer.Stop();
-            CalculateDelatTime();
-            _timer.Reset();
-
-            // Moving
-            if(_builtInMovement) Move(W_Down, A_Down, S_Down, D_Down);
-
-            // Timing for frame time
-            _timer.Start();
         }
-
-        // Testing floor and wall casting at once
-        /*public void RunMultithreaded()
-        {
-            List<int> list = new List<int>();
-
-            // MultiThreaded Wall Casting
-            using (ManualResetEvent resetEvent = new ManualResetEvent(false))
-            {
-
-                int WallThreads = _threads;
-                //foreach (int i in Enumerable.Range(0, WallThreads))
-                //{
-                //    list.Add(i);
-                //    // Closure for anonymous function call begins here, because foreach works a bit differently than for.
-                //    ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
-                //    {
-                //        CastWall((i / _threads) * _renderWidth, ((i + 1) / _threads) * _renderWidth);
-                //        if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
-                //    }), list[i]);
-                //}
-                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((0 / _threads) * _renderWidth, (1 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 0);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((1 / _threads) * _renderWidth, (2 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 1);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((2 / _threads) * _renderWidth, (3 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 2);
-                ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastWall((3 / _threads) * _renderWidth, (4 / _threads) * _renderWidth); if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set(); }), 3);
-
-                int FloorThreads = _threads > 2 ? 2 : _threads;
-                if (_DrawFloorCeiling)
-                {
-                    //foreach (int i in Enumerable.Range(0, FloorThreads))
-                    //{
-                    //   list.Add(i + _threads);
-                    //    // Closure for anonymous function call begins here, because foreach works a bit differently than for.
-                    //    ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
-                    //    {
-                    //        // TODO: Fix it!! there is out of range exception, for some reason it works maximally with 2 threads, so for now I will limit in on 2 threads
-                    //        // it's probably because of how it's rendered, there are some calculations for perspective
-                    //        CastFloorMultithreaded((i / (_threads > 2 ? 2 : _threads)) * _renderHeight, (i + 1 / (_threads > 2 ? 2 : _threads)) * _renderHeight);
-                    //        if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
-                    //    }), list[i + _threads]);
-                    //}
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((0 / 4) * _renderHeight, (2 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 4);
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((2 / 4) * _renderHeight, (4 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 5);
-                    //ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((2 / 4) * _renderHeight, (3 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 6);
-                    //ThreadPool.QueueUserWorkItem(new WaitCallback(x => { CastFloor((3 / 4) * _renderHeight, (4 / 4) * _renderHeight); if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set(); }), 7);
-                }
-
-                resetEvent.WaitOne();
-            }
-
-            // Version where I would create every thread every frame - very inefficient
-            //Thread t0 = new Thread(() => CastFloor((0/2) * _renderHeight, (1/2) * _renderHeight));
-            //Thread t1 = new Thread(() => CastFloor((1 / 2) * _renderHeight, (2 / 2) * _renderHeight));
-
-            //Thread t2 = new Thread(() => CastWall((0 / _threads) * _renderWidth, (1 / 4) * _renderWidth));
-            //Thread t3 = new Thread(() => CastWall((1 / _threads) * _renderWidth, (2 / 4) * _renderWidth));
-            //Thread t4 = new Thread(() => CastWall((2 / _threads) * _renderWidth, (3 / 4) * _renderWidth));
-            //Thread t5 = new Thread(() => CastWall((3 / _threads) * _renderWidth, (4 / 4) * _renderWidth));
-
-            //t0.Start(); t1.Start(); t2.Start(); t3.Start(); t4.Start(); t5.Start();
-            //t0.Join(); t1.Join(); t2.Join(); t3.Join(); t4.Join(); t5.Join();
-
-            for (int x = 0; x < _buffer.GetLength(0); x++)
-            {
-                for(int y = 0; y < _buffer.GetLength(1); y++)
-                {
-                    if (_bufferWall[x,y,3] == 255)
-                    {
-                        _buffer[x, y, 0] = _bufferFloor[x, y, 0];
-                        _buffer[x, y, 1] = _bufferFloor[x, y, 1];
-                        _buffer[x, y, 2] = _bufferFloor[x, y, 2];
-                    }
-                    else
-                    {
-                        _buffer[x, y, 0] = _bufferWall[x, y, 0];
-                        _buffer[x, y, 1] = _bufferWall[x, y, 1];
-                        _buffer[x, y, 2] = _bufferWall[x, y, 2];
-                    }
-                }
-            }
-
-            // Sprite casting
-            CastSprites();
-        }*/
 
         public void CalculateDelatTime()
         {
@@ -336,11 +228,6 @@ namespace RayCasting
                     _buffer[_renderHeight - y - 1, x, 1] = color[1];
                     _buffer[_renderHeight - y - 1, x, 2] = color[2];
 
-                    // Total Mutlithreading test
-                    //_bufferFloor[_renderHeight - y - 1, x, 0] = color[0];
-                    //_bufferFloor[_renderHeight - y - 1, x, 1] = color[1];
-                    //_bufferFloor[_renderHeight - y - 1, x, 2] = color[2];
-
                     // Get the texture coordinate from the fractional part
                     tx = (int)(ceilingTexWidth * (floorX - cellX)) & (ceilingTexWidth - 1);
                     ty = (int)(ceilingTexHeight * (floorY - cellY)) & (ceilingTexHeight - 1);
@@ -352,11 +239,6 @@ namespace RayCasting
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
-
-                    // Total Mutlithreading test
-                    //_bufferFloor[y, x, 0] = color[0];
-                    //_bufferFloor[y, x, 1] = color[1];
-                    //_bufferFloor[y, x, 2] = color[2];
                 }
             }
         }
@@ -490,25 +372,6 @@ namespace RayCasting
                     }
                 }
 
-                // _bufferWall test
-                // Draw before line
-                /*for (int i = 0; i < drawStart; i++)
-                {
-                    _bufferWall[i, x, 0] = 0;
-                    _bufferWall[i, x, 1] = 0;
-                    _bufferWall[i, x, 2] = 0;
-                    _bufferWall[i, x, 3] = 255;
-                }
-
-                // Draw after line
-                for (int i = drawEnd; i < _renderHeight; i++)
-                {
-                    _bufferWall[i, x, 0] = 0;
-                    _bufferWall[i, x, 1] = 0;
-                    _bufferWall[i, x, 2] = 0;
-                    _bufferWall[i, x, 3] = 255;
-                }*/
-
                 // Drawing the inside of line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -532,12 +395,6 @@ namespace RayCasting
                     _buffer[y, x, 0] = color[0];
                     _buffer[y, x, 1] = color[1];
                     _buffer[y, x, 2] = color[2];
-
-                    // Total Mutlithreading test
-                    //_bufferWall[y, x, 0] = color[0];
-                    //_bufferWall[y, x, 1] = color[1];
-                    //_bufferWall[y, x, 2] = color[2];
-                    //_bufferWall[y, x, 3] = 0;
                 }
 
                 // SET THE ZBUFFER FOR THE SPRITE CASTING
@@ -655,51 +512,46 @@ namespace RayCasting
 
         // Movement
         // TODO: Add some boundaries around player for normal collision
-        private void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        /// <summary>
+        /// Default built-in movement the doom style.
+        /// </summary>
+        /// <param name="W_Down"></param>
+        /// <param name="A_Down"></param>
+        /// <param name="S_Down"></param>
+        /// <param name="D_Down"></param>
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
         {
             float radius = 0.25f;
+
+            // speed modifiers
+            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
+            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
+
+            // timing for input and FPS counter
+            _timer.Stop();
+            CalculateDelatTime();
+            _timer.Reset();
+
+            // Timing for frame time
+            _timer.Start();
 
             // Move froward if no wall in front of you
             if (W_Down)
             {
                 // TODO: Figure out how to make circle collider around camera
                 // This is square collider
-                if (_dirX > 0)
-                {
-                    if (_map.map[(int)((_posX + _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
-                }
-                else
-                {
-                    if (_map.map[(int)((_posX + _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
-                }
-                if(_dirY > 0)
-                {
-                    if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) + radius)] == 0) _posY += _dirY * _moveSpeed;
-                }
-                else
-                {
-                    if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) - radius)] == 0) _posY += _dirY * _moveSpeed;
-                }
+                if (_dirX > 0){ if (_map.map[(int)((_posX + _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed; }
+                else{           if (_map.map[(int)((_posX + _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed; }
+                if (_dirY > 0){ if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) + radius)] == 0) _posY += _dirY * _moveSpeed; }
+                else{           if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) - radius)] == 0) _posY += _dirY * _moveSpeed; }
             }
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (_dirX > 0)
-                {
-                    if (_map.map[(int)((_posX - _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
-                }
-                else
-                {
-                    if (_map.map[(int)((_posX - _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
-                }
-                if (_dirY > 0)
-                {
-                    if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) - radius)] == 0) _posY -= _dirY * _moveSpeed;
-                }
-                else
-                {
-                    if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) + radius)] == 0) _posY -= _dirY * _moveSpeed;
-                }
+                if (_dirX > 0){ if (_map.map[(int)((_posX - _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed; }
+                else {          if (_map.map[(int)((_posX - _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed; }
+                if (_dirY > 0){ if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) - radius)] == 0) _posY -= _dirY * _moveSpeed; }
+                else {          if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) + radius)] == 0) _posY -= _dirY * _moveSpeed; }
             }
             // Rotate to the right
             if (D_Down)
@@ -725,15 +577,6 @@ namespace RayCasting
             }
         }
 
-        // User can use default movement
-        /// <summary>
-        /// Uses default movement with W S for moving and A D for rotating
-        /// </summary>
-        public void UseDefaultMovement()
-        {
-            _builtInMovement = true;
-        }
-
         // User can set camera position and direction by himself if default movement is not choosen
         // TODO: Probably create Camera class or struct
         /// <summary>
@@ -744,14 +587,11 @@ namespace RayCasting
         /// <param name="DirX">X direction (to which X position you are rotated)</param>
         /// <param name="DirY">Y direction (to which Y position you are rotated)</param>
         public void CameraPos(double PosX, double PosY, double DirX, double DirY)
-        {
-            if (!_builtInMovement) // prevent from updating position when default movement is used
-            {
-                _posX = PosX;
-                _posY = PosY;
-                _dirX = DirX;
-                _dirY = DirY;
-            }
+        {            
+            _posX = PosX;
+            _posY = PosY;
+            _dirX = DirX;
+            _dirY = DirY;
         }
 
         // Runs rendering multithreaded

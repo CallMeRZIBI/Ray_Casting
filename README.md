@@ -30,14 +30,19 @@ and give it those parameters
 
 #
 
+### Move Camera
 ### There is default movement with W A S D implemented, to use it you have to call this method
 ```C#
-SimpleRayCaster.UseDefaultMovement();
+SimpleRayCaster.Move(W_Down, A_Down, S_Down, D_Down);
 ```
+and give it those parameters as arguments for implemented movement
+- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
+- A_Down (default is false) - bool if A is pressed (true = pressed)
+- S_Down (default is false) - bool if S is pressed (true = pressed)
+- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 
-### Move Camera
 To move camera you can call this method:
 ```C#
 SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
@@ -52,13 +57,8 @@ and pass it those arguments:
 
 ### Update frame
 ```C#
-SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
+SimpleRayCaster.UpdateRayCast();
 ```
-and give it those parameters as arguments for implemented movement
-- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
-- A_Down (default is false) - bool if A is pressed (true = pressed)
-- S_Down (default is false) - bool if S is pressed (true = pressed)
-- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 
@@ -129,14 +129,19 @@ and give it those parameters as argument
 
 #
 
+### Move Camera
 ### There is default movement with W A S D implemented, to use it you have to call this method
 ```C#
-SimpleRayCaster.UseDefaultMovement();
+SimpleRayCaster.Move(W_Down, A_Down, S_Down, D_Down);
 ```
+and give it those parameters as arguments for implemented movement
+- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
+- A_Down (default is false) - bool if A is pressed (true = pressed)
+- S_Down (default is false) - bool if S is pressed (true = pressed)
+- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 
-### Move Camera
 To move camera you can call this method:
 ```C#
 SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
@@ -151,13 +156,8 @@ and pass it those arguments:
 
 ### Update frame
 ```C#
-SimpleRayCaster.UpdateRayCast(W_Down, A_Down, S_Down, D_Down);
+SimpleRayCaster.UpdateRayCast();
 ```
-and give it those parameters as arguments for implemented movement
-- W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
-- A_Down (default is false) - bool if A is pressed (true = pressed)
-- S_Down (default is false) - bool if S is pressed (true = pressed)
-- D_Down (default is false) - bool if D is pressed (true = pressed)
 
 #
 

@@ -181,7 +181,6 @@ namespace TexturedRayCastingDemo
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indicies.Length * sizeof(uint), indicies, BufferUsageHint.StaticDraw);
 
-                RCaster.UseDefaultMovement();
                 RCaster.MultiThreaded(8);
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
@@ -206,7 +205,8 @@ namespace TexturedRayCastingDemo
                 D_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Ray Casting is implemented in the TexturedRayCaster.UpdateRayCast method
-                RCaster.UpdateRayCast(W_down, A_down, S_down, D_down);
+                RCaster.Move(W_down, A_down, S_down, D_down);
+                RCaster.UpdateRayCast();
 
                 data = RCaster.GetRawBuffer();
 

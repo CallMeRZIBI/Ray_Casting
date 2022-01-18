@@ -10,7 +10,8 @@ namespace RayCasting
     {
         void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66);
 
-        void UpdateRayCast(bool W_Down, bool A_Down, bool S_Down, bool D_Down);
+        void Move(bool W_down, bool A_down, bool S_down, bool D_down);
+        void UpdateRayCast();
         void CalculateDelatTime();
     }
 }

@@ -32,8 +32,6 @@ namespace RayCasting
         private double _planeX;
         private double _planeY;
 
-        private bool _builtInMovement;
-
         private double _moveSpeed;
         private double _rotSpeed;
 
@@ -71,7 +69,7 @@ namespace RayCasting
         }
 
         // Update RayCast calculations with given pos and save vertices in OpenGL format which later can be fromated
-        public void UpdateRayCast(bool W_Down = false, bool A_Down = false, bool S_Down = false, bool D_Down = false)
+        public void UpdateRayCast()
         {
             for (int x = 0; x < _renderWidth; x++)
             {
@@ -196,103 +194,76 @@ namespace RayCasting
                 _vertexData[x * 12 + 10] = color.g;
                 _vertexData[x * 12 + 11] = color.b;
             }
+        }
 
-            // Speed modifiers
-            _moveSpeed = _deltaTime * 5.0 * LineThickness; // Constant value is in idk
-            _rotSpeed = _deltaTime * 3.0 * LineThickness; // Constant value is in idk
+        /// <summary>
+        /// Default built-in movement the doom style.
+        /// </summary>
+        /// <param name="W_Down"></param>
+        /// <param name="A_Down"></param>
+        /// <param name="S_Down"></param>
+        /// <param name="D_Down"></param>
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        {
+            float radius = 0.25f;
 
-            // Timing for input *some problem with probably stopwatch or me cause it flickers sometimes
+            // speed modifiers
+            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
+            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
+
+            // timing for input and FPS counter
             _timer.Stop();
             CalculateDelatTime();
             _timer.Reset();
 
-            // Moving
-            if (_builtInMovement)
-            {
-                float radius = 0.25f;
-
-                // Move froward if no wall in front of you
-                if (W_Down)
-                {
-                    // TODO: Figure out how to make circle collider around camera
-                    // This is square collider
-                    if (_dirX > 0)
-                    {
-                        if (_map.map[(int)((_posX + _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
-                    }
-                    else
-                    {
-                        if (_map.map[(int)((_posX + _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed;
-                    }
-                    if (_dirY > 0)
-                    {
-                        if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) + radius)] == 0) _posY += _dirY * _moveSpeed;
-                    }
-                    else
-                    {
-                        if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) - radius)] == 0) _posY += _dirY * _moveSpeed;
-                    }
-                }
-                // Move backwards if no wall behind you
-                if (S_Down)
-                {
-                    if (_dirX > 0)
-                    {
-                        if (_map.map[(int)((_posX - _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
-                    }
-                    else
-                    {
-                        if (_map.map[(int)((_posX - _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed;
-                    }
-                    if (_dirY > 0)
-                    {
-                        if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) - radius)] == 0) _posY -= _dirY * _moveSpeed;
-                    }
-                    else
-                    {
-                        if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) + radius)] == 0) _posY -= _dirY * _moveSpeed;
-                    }
-                }
-                // Rotate to the right
-                if (D_Down)
-                {
-                    // both camera direction and camera plane must be rotated
-                    double oldDirX = _dirX;
-                    _dirX = _dirX * Math.Cos(-_rotSpeed) - _dirY * Math.Sin(-_rotSpeed);
-                    _dirY = oldDirX * Math.Sin(-_rotSpeed) + _dirY * Math.Cos(-_rotSpeed);
-                    double oldPlaneX = _planeX;
-                    _planeX = _planeX * Math.Cos(-_rotSpeed) - _planeY * Math.Sin(-_rotSpeed);
-                    _planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _planeY * Math.Cos(-_rotSpeed);
-                }
-                // Rotate to the left
-                if (A_Down)
-                {
-                    // both camera direction and camera plane must be rotated
-                    double oldDirX = _dirX;
-                    _dirX = _dirX * Math.Cos(_rotSpeed) - _dirY * Math.Sin(_rotSpeed);
-                    _dirY = oldDirX * Math.Sin(_rotSpeed) + _dirY * Math.Cos(_rotSpeed);
-                    double oldPlaneX = _planeX;
-                    _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
-                    _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
-                }
-            }
-
-            // Timing for frame times
+            // Timing for frame time
             _timer.Start();
+
+            // Move froward if no wall in front of you
+            if (W_Down)
+            {
+                // TODO: Figure out how to make circle collider around camera
+                // This is square collider
+                if (_dirX > 0) { if (_map.map[(int)((_posX + _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed; }
+                else { if (_map.map[(int)((_posX + _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX += _dirX * _moveSpeed; }
+                if (_dirY > 0) { if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) + radius)] == 0) _posY += _dirY * _moveSpeed; }
+                else { if (_map.map[(int)(_posX), (int)((_posY + _dirY * _moveSpeed) - radius)] == 0) _posY += _dirY * _moveSpeed; }
+            }
+            // Move backwards if no wall behind you
+            if (S_Down)
+            {
+                if (_dirX > 0) { if (_map.map[(int)((_posX - _dirX * _moveSpeed) - radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed; }
+                else { if (_map.map[(int)((_posX - _dirX * _moveSpeed) + radius), (int)(_posY)] == 0) _posX -= _dirX * _moveSpeed; }
+                if (_dirY > 0) { if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) - radius)] == 0) _posY -= _dirY * _moveSpeed; }
+                else { if (_map.map[(int)(_posX), (int)((_posY - _dirY * _moveSpeed) + radius)] == 0) _posY -= _dirY * _moveSpeed; }
+            }
+            // Rotate to the right
+            if (D_Down)
+            {
+                // both camera direction and camera plane must be rotated
+                double oldDirX = _dirX;
+                _dirX = _dirX * Math.Cos(-_rotSpeed) - _dirY * Math.Sin(-_rotSpeed);
+                _dirY = oldDirX * Math.Sin(-_rotSpeed) + _dirY * Math.Cos(-_rotSpeed);
+                double oldPlaneX = _planeX;
+                _planeX = _planeX * Math.Cos(-_rotSpeed) - _planeY * Math.Sin(-_rotSpeed);
+                _planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _planeY * Math.Cos(-_rotSpeed);
+            }
+            // Rotate to the left
+            if (A_Down)
+            {
+                // both camera direction and camera plane must be rotated
+                double oldDirX = _dirX;
+                _dirX = _dirX * Math.Cos(_rotSpeed) - _dirY * Math.Sin(_rotSpeed);
+                _dirY = oldDirX * Math.Sin(_rotSpeed) + _dirY * Math.Cos(_rotSpeed);
+                double oldPlaneX = _planeX;
+                _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
+                _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
+            }
         }
 
         public void CalculateDelatTime()
         {
             _deltaTime = _timer.Elapsed.TotalSeconds;
-        }
-
-        // User can use default movement
-        /// <summary>
-        /// Uses default movement with W S for moving and A D for rotating
-        /// </summary>
-        public void UseDefaultMovement()
-        {
-            _builtInMovement = true;
         }
 
         // User can set camera position and direction by himself if default movement is not choosen
@@ -306,13 +277,10 @@ namespace RayCasting
         /// <param name="DirY">Y direction (to which Y position you are rotated)</param>
         public void CameraPos(double PosX, double PosY, double DirX, double DirY)
         {
-            if (!_builtInMovement) // prevent from updating position when default movement is used
-            {
-                _posX = PosX;
-                _posY = PosY;
-                _dirX = DirX;
-                _dirY = DirY;
-            }
+            _posX = PosX;
+            _posY = PosY;
+            _dirX = DirX;
+            _dirY = DirY;
         }
 
         public float[] GetGLVertices()

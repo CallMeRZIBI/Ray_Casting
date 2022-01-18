@@ -86,8 +86,6 @@ namespace UntexturedRayCastingDemo
                 shaderProgram = LoadShaderProgram("./vertex_shader.glsl", "./fragment_shader.glsl");
                 //uniformProj = GL.GetUniformLocation(shaderProgram.id, "proj");
 
-                SimpleRCaster.UseDefaultMovement();
-
                 SimpleRCaster.CreateMap(map, posX, posY);
             };
 
@@ -108,7 +106,8 @@ namespace UntexturedRayCastingDemo
                 D_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Ray Casting is implemented in the UntexturedRayCaster.UpdateRayCast method
-                SimpleRCaster.UpdateRayCast(W_down, A_down, S_down, D_down);
+                SimpleRCaster.Move(W_down, A_down, S_down, D_down);
+                SimpleRCaster.UpdateRayCast();
 
                 // Get the rays in OenGL Vertex form
                 vertexData = SimpleRCaster.GetGLVertices();
