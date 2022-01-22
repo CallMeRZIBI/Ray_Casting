@@ -207,17 +207,14 @@ namespace RayCasting
         {
             float radius = 0.25f;
 
-            // speed modifiers
+            // Speed modifiers
             _moveSpeed = _deltaTime * 5.0; // Constant value is idk
             _rotSpeed = _deltaTime * 3.0; // Constant value is idk
 
-            // timing for input and FPS counter
+            // Timing for input and FPS counter
             _timer.Stop();
             CalculateDelatTime();
             _timer.Reset();
-
-            // Timing for frame time
-            _timer.Start();
 
             // Move froward if no wall in front of you
             if (W_Down)
@@ -259,6 +256,9 @@ namespace RayCasting
                 _planeX = _planeX * Math.Cos(_rotSpeed) - _planeY * Math.Sin(_rotSpeed);
                 _planeY = oldPlaneX * Math.Sin(_rotSpeed) + _planeY * Math.Cos(_rotSpeed);
             }
+
+            // Timing for frame time
+            _timer.Start();
         }
 
         public void CalculateDelatTime()

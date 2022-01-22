@@ -43,7 +43,7 @@ and give it those parameters as arguments for implemented movement
 
 #
 
-To move camera you can call this method:
+### To move camera you can call this method:
 ```C#
 SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
 ```
@@ -142,7 +142,7 @@ and give it those parameters as arguments for implemented movement
 
 #
 
-To move camera you can call this method:
+### To move camera you can call this method:
 ```C#
 SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
 ```
