@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
@@ -13,12 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RayCasting">
-      <HintPath>..\..\bin\Release\net5.0\RayCasting.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="sounds\walk.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="sounds\walk.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="textures\barrel.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -64,6 +64,16 @@
     <None Update="TexturedShaders\vertex_shader.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="sounds\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RayCasting">
+      <HintPath>..\..\bin\Release\net6.0\RayCasting.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -127,6 +127,9 @@ namespace TexturedRayCastingDemo
             sprites.Add(new Sprite() { posX = 10.0, posY = 15.1, texture = spriteTextures[0] });
             sprites.Add(new Sprite() { posX = 10.5, posY = 15.8, texture = spriteTextures[0] });
 
+            // Loading sounds
+            RayCasting.Sound.Sound walk = new RayCasting.Sound.Sound("./sounds/walk.wav");
+
             float[] vertices =
             {
                 //Position          Texture coordinates
@@ -203,6 +206,10 @@ namespace TexturedRayCastingDemo
                 A_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.A);
                 S_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.S);
                 D_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
+
+                // Playing walk sound
+                if (W_down || S_down) walk.Play();
+                else walk.Stop();
 
                 // Ray Casting is implemented in the TexturedRayCaster.UpdateRayCast method
                 RCaster.Move(W_down, A_down, S_down, D_down);
