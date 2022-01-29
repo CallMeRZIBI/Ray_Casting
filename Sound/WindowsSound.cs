@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Timers;
 
 namespace RayCasting.Sound
 {
@@ -12,7 +14,10 @@ namespace RayCasting.Sound
     {
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string command, StringBuilder stringReturn, int returnLength, IntPtr hwndCallback);
-        private string _path;
+        private readonly string _path;
+        private Timer _playbackTimer;
+        private Stopwatch _playStopwatch;
+        public event EventHandler PlaybackFinished;
         public bool Playing { get; private set; }
         public bool Paused { get; private set; }
 
@@ -33,8 +38,10 @@ namespace RayCasting.Sound
             if(Playing && !Paused)
             {
                 ExecuteMsiCommand($"Pause {_path}");
-                Playing = true;
                 Paused = true;
+                _playbackTimer.Stop();
+                _playStopwatch.Stop();
+                _playbackTimer.Interval -= _playStopwatch.ElapsedMilliseconds;
             }
 
             return Task.CompletedTask;
@@ -42,14 +49,19 @@ namespace RayCasting.Sound
 
         public Task Play()
         {
-            if (!Playing && !Paused)
+            _playbackTimer = new Timer
             {
-                ExecuteMsiCommand("Close All");
-                ExecuteMsiCommand($"Status {_path} Length");
-                ExecuteMsiCommand($"Play {_path}");
-                Playing = true;
-                Paused = false;
-            }
+                AutoReset = false
+            };
+            _playStopwatch = new Stopwatch();
+            ExecuteMsiCommand("Close All");
+            ExecuteMsiCommand($"Status {_path} Length");
+            ExecuteMsiCommand($"Play {_path}");
+            Paused = false;
+            Playing = true;
+            _playbackTimer.Elapsed += HandlePlaybackFinished;
+            _playbackTimer.Start();
+            _playStopwatch.Start();
 
             return Task.CompletedTask;
         }
@@ -59,8 +71,10 @@ namespace RayCasting.Sound
             if(Playing && Paused)
             {
                 ExecuteMsiCommand($"Resume {_path}");
-                Playing = true;
                 Paused = false;
+                _playbackTimer.Start();
+                _playStopwatch.Reset();
+                _playStopwatch.Start();
             }
 
             return Task.CompletedTask;
@@ -68,11 +82,13 @@ namespace RayCasting.Sound
 
         public Task Stop()
         {
-            if(Playing && !Paused)
+            if(Playing)
             {
                 ExecuteMsiCommand($"Stop {_path}");
                 Playing = false;
                 Paused = false;
+                _playbackTimer.Stop();
+                _playStopwatch.Stop();
             }
 
             return Task.CompletedTask;
@@ -86,6 +102,14 @@ namespace RayCasting.Sound
             {
                 throw new Exception($"Error executing MSI command. Error code: {result}");
             }
+        }
+
+        private void HandlePlaybackFinished(object sender, ElapsedEventArgs e)
+        {
+            Playing = false;
+            PlaybackFinished?.Invoke(this, e);
+            _playbackTimer.Dispose();
+            _playbackTimer = null;
         }
     }
 }

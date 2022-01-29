@@ -10,6 +10,7 @@ namespace RayCasting.Sound
     {
         bool Playing { get; }
         bool Paused { get; }
+        event EventHandler PlaybackFinished;
         Task Play();
         Task Pause();
         Task Resume();
