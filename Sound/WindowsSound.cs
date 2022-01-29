@@ -14,6 +14,8 @@ namespace RayCasting.Sound
     {
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string command, StringBuilder stringReturn, int returnLength, IntPtr hwndCallback);
+        [DllImport("winm.dll")]
+        private static extern int mciGetErrorString(int errorCode, StringBuilder errorText, int errorTextSize);
         private readonly string _path;
         private Timer _playbackTimer;
         private Stopwatch _playStopwatch;
@@ -49,19 +51,22 @@ namespace RayCasting.Sound
 
         public Task Play()
         {
-            _playbackTimer = new Timer
+            if (!Playing && !Paused)
             {
-                AutoReset = false
-            };
-            _playStopwatch = new Stopwatch();
-            ExecuteMsiCommand("Close All");
-            ExecuteMsiCommand($"Status {_path} Length");
-            ExecuteMsiCommand($"Play {_path}");
-            Paused = false;
-            Playing = true;
-            _playbackTimer.Elapsed += HandlePlaybackFinished;
-            _playbackTimer.Start();
-            _playStopwatch.Start();
+                _playbackTimer = new Timer
+                {
+                    AutoReset = false
+                };
+                _playStopwatch = new Stopwatch();
+                ExecuteMsiCommand("Close All");
+                ExecuteMsiCommand($"Status {_path} Length");
+                ExecuteMsiCommand($"Play {_path}");
+                Paused = false;
+                Playing = true;
+                //_playbackTimer.Elapsed += HandlePlaybackFinished; // Its always setting Playing to false
+                _playbackTimer.Start();
+                _playStopwatch.Start();
+            }
 
             return Task.CompletedTask;
         }
@@ -96,11 +101,19 @@ namespace RayCasting.Sound
 
         private void ExecuteMsiCommand(string commandString)
         {
+            var sb = new StringBuilder();
+
             var result = mciSendString(commandString, null, 0, IntPtr.Zero);
 
             if(result != 0)
             {
-                throw new Exception($"Error executing MSI command. Error code: {result}");
+                var errorSb = new StringBuilder($"Error executing MCI command '{commandString}'. Error code: {result}.");
+                var sb2 = new StringBuilder(128);
+
+                mciGetErrorString((int)result, sb2, 128);
+                errorSb.Append($" Message: {sb2}");
+
+                throw new Exception(errorSb.ToString());
             }
         }
 
