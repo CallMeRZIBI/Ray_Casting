@@ -8,6 +8,8 @@ namespace RayCasting.Sound
 {
     public interface IPlayer
     {
+        bool Playing { get; }
+        bool Paused { get; }
         Task Play();
         Task Pause();
         Task Resume();

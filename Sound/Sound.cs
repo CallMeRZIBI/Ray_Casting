@@ -10,6 +10,8 @@ namespace RayCasting.Sound
     public class Sound : IPlayer
     {
         private readonly IPlayer _player;
+        public bool Playing => _player.Playing;
+        public bool Paused => _player.Paused;
 
         public Sound(string path)
         {
