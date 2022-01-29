@@ -51,22 +51,19 @@ namespace RayCasting.Sound
 
         public Task Play()
         {
-            if (!Playing && !Paused)
+            _playStopwatch = new Stopwatch();
+            ExecuteMsiCommand("Close All");
+            string timerDurationStr = ExecuteMsiCommand($"Status {_path} Length"); // As it turns out it's not returning the legth in StringBuilder
+            ExecuteMsiCommand($"Play {_path}");
+            _playbackTimer = new Timer(Convert.ToInt32(timerDurationStr))
             {
-                _playbackTimer = new Timer
-                {
-                    AutoReset = false
-                };
-                _playStopwatch = new Stopwatch();
-                ExecuteMsiCommand("Close All");
-                ExecuteMsiCommand($"Status {_path} Length");
-                ExecuteMsiCommand($"Play {_path}");
-                Paused = false;
-                Playing = true;
-                //_playbackTimer.Elapsed += HandlePlaybackFinished; // Its always setting Playing to false
-                _playbackTimer.Start();
-                _playStopwatch.Start();
-            }
+                AutoReset = false
+            };
+            Paused = false;
+            Playing = true;
+            _playbackTimer.Start();
+            _playStopwatch.Start();
+            _playbackTimer.Elapsed += HandlePlaybackFinished; // Its always setting Playing to false
 
             return Task.CompletedTask;
         }
@@ -92,6 +89,7 @@ namespace RayCasting.Sound
                 ExecuteMsiCommand($"Stop {_path}");
                 Playing = false;
                 Paused = false;
+                Console.WriteLine(_playbackTimer.Interval);
                 _playbackTimer.Stop();
                 _playStopwatch.Stop();
             }
@@ -99,11 +97,12 @@ namespace RayCasting.Sound
             return Task.CompletedTask;
         }
 
-        private void ExecuteMsiCommand(string commandString)
+        private string ExecuteMsiCommand(string commandString)
         {
             var sb = new StringBuilder();
+            IntPtr pointer = new IntPtr();
 
-            var result = mciSendString(commandString, null, 0, IntPtr.Zero);
+            var result = mciSendString(commandString, sb, 1024 * 1024, pointer);
 
             if(result != 0)
             {
@@ -115,6 +114,8 @@ namespace RayCasting.Sound
 
                 throw new Exception(errorSb.ToString());
             }
+
+            return sb.ToString();
         }
 
         private void HandlePlaybackFinished(object sender, ElapsedEventArgs e)

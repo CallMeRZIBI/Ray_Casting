@@ -41,17 +41,14 @@ namespace RayCasting.Sound
 
         public async Task Play()
         {
-            if (!Playing)
-            {
-                await Stop();
-                var BashToolName = GetBashCommand(_path);
-                _process = StartBashProcess($"{BashToolName} '{_path}'");
-                _process.EnableRaisingEvents = true;
-                _process.Exited += HandlePlaybackFinished;
-                _process.ErrorDataReceived += HandlePlaybackFinished;
-                _process.Disposed += HandlePlaybackFinished;
-                Playing = true;
-            }
+            await Stop();
+            var BashToolName = GetBashCommand(_path);
+            _process = StartBashProcess($"{BashToolName} '{_path}'");
+            _process.EnableRaisingEvents = true;
+            _process.Exited += HandlePlaybackFinished;
+            _process.ErrorDataReceived += HandlePlaybackFinished;
+            _process.Disposed += HandlePlaybackFinished;
+            Playing = true;
         }
 
         public Task Resume()

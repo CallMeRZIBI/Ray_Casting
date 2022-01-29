@@ -9,3 +9,4 @@ C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net6.0\RayCasting.
 C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net6.0\RayCasting.dll
 C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net6.0\ref\RayCasting.dll
 C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net6.0\RayCasting.pdb
+C:\Users\micha\source\repos\RayCasting\RayCasting\obj\Release\net6.0\RayCasting.csproj.AssemblyReference.cache
