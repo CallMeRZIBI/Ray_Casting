@@ -14,7 +14,7 @@ namespace RayCasting.Sound
     {
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string command, StringBuilder stringReturn, int returnLength, IntPtr hwndCallback);
-        [DllImport("winm.dll")]
+        [DllImport("winmm.dll")]
         private static extern int mciGetErrorString(int errorCode, StringBuilder errorText, int errorTextSize);
         private readonly string _path;
         private Timer _playbackTimer;
@@ -51,14 +51,12 @@ namespace RayCasting.Sound
 
         public Task Play()
         {
-            _playStopwatch = new Stopwatch();
             ExecuteMsiCommand("Close All");
-            string timerDurationStr = ExecuteMsiCommand($"Status {_path} Length"); // As it turns out it's not returning the legth in StringBuilder
             ExecuteMsiCommand($"Play {_path}");
-            _playbackTimer = new Timer(Convert.ToInt32(timerDurationStr))
-            {
-                AutoReset = false
-            };
+            string timerDurationStr = ExecuteMsiCommand($"Status {_path} Length"); // As it turns out it's not returning the legth in StringBuilder
+            _playbackTimer = new Timer(Convert.ToDouble(timerDurationStr));
+            _playStopwatch = new Stopwatch();
+            _playbackTimer.AutoReset = false;
             Paused = false;
             Playing = true;
             _playbackTimer.Start();
@@ -89,7 +87,6 @@ namespace RayCasting.Sound
                 ExecuteMsiCommand($"Stop {_path}");
                 Playing = false;
                 Paused = false;
-                Console.WriteLine(_playbackTimer.Interval);
                 _playbackTimer.Stop();
                 _playStopwatch.Stop();
             }
