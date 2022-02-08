@@ -6,6 +6,7 @@ using OpenTK.Windowing.Common;
 using System.IO;
 using System.Collections.Generic;
 using RayCasting;
+using System.Threading.Tasks;
 
 namespace TexturedRayCastingDemo
 {
@@ -209,7 +210,7 @@ namespace TexturedRayCastingDemo
 
                 // Playing walk sound
                 if ((W_down || S_down)) { 
-                    if(!walk.Playing){ 
+                    if(!walk.Playing){
                         walk.Play(); 
                     } 
                 }

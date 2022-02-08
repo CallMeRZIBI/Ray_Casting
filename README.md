@@ -253,3 +253,59 @@ sprite.LoadTextureFromPath(path);
 ```
 And give it this parameter as argument
 - path - string with path to image
+
+#
+
+## **Sound**
+
+This engine has a builtin sound system that supports Windows (when executing any of Tasks it stutters), Linux (with alsa) and MacOS X (currently untested). - souce: https://scientificprogrammer.net/2019/08/18/building-net-core-audio-application-part-1/\
+It's able to play, stop, pause and resume sound.
+
+### You can create sound object
+```C#
+RayCasting.Sound.Sound sound = new RayCasting.Sound.Sound(?path);
+```
+And give it this argument
+- path - string corresponding to path to sound, optional
+
+### This class has those public variables
+- Playing - bool: true if sound is playing
+- Puased - bool: true if sound is paused
+- PlaybackFinished - event: fires on playback finished 
+#
+
+### If you want to change path to sound you can simply do it by calling this method
+```C#
+sound.SetPath(path);
+```
+And give it those arguments
+- path - string corresponding to path to sound
+
+#
+
+### Playing sound
+```C#
+sound.Play();
+```
+
+#
+
+### Stopping sound
+```C#
+sound.Stop();
+```
+
+#
+
+### Pausing sound
+```C#
+sound.Pause();
+```
+
+#
+
+### Resuming sound
+```C#
+sound.Resume();
+```
+All of those operational methods are Tasks, so you can wait for their completions and so on...

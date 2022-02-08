@@ -14,7 +14,7 @@ namespace RayCasting.Sound
         public bool Playing => _player.Playing;
         public bool Paused => _player.Paused;
 
-        public Sound(string path)
+        public Sound(string? path = null)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) _player = new WindowsSound(path);
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) _player = new LinuxSound(path);
@@ -41,6 +41,11 @@ namespace RayCasting.Sound
         public async Task Stop()
         {
             await _player.Stop();
+        }
+
+        public void SetPath(string path)
+        {
+            _player.SetPath(path);
         }
 
         private void OnPlayBackFinished(object sender, EventArgs e)

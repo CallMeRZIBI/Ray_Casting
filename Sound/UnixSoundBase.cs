@@ -12,7 +12,7 @@ namespace RayCasting.Sound
         private Process _process = null;
         internal const string PauseProcess = "kill -STOP {0}";
         internal const string ResumeProcess = "kill -CONT {0}";
-        private readonly string _path;
+        private string? _path;
 
         public event EventHandler PlaybackFinished;
         public bool Playing { get; private set; }
@@ -20,7 +20,7 @@ namespace RayCasting.Sound
 
         protected abstract string GetBashCommand(string filename);
 
-        public UnixSoundBase(string path)
+        public UnixSoundBase(string? path)
         {
             _path = path;
             Playing = false;
@@ -76,6 +76,11 @@ namespace RayCasting.Sound
             Paused = false;
 
             return Task.CompletedTask;
+        }
+
+        public void SetPath(string path)
+        {
+            _path = path;
         }
 
         protected Process StartBashProcess(string command)

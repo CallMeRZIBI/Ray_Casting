@@ -16,14 +16,14 @@ namespace RayCasting.Sound
         private static extern long mciSendString(string command, StringBuilder stringReturn, int returnLength, IntPtr hwndCallback);
         [DllImport("winmm.dll")]
         private static extern int mciGetErrorString(int errorCode, StringBuilder errorText, int errorTextSize);
-        private readonly string _path;
+        private string _path;
         private Timer _playbackTimer;
         private Stopwatch _playStopwatch;
         public event EventHandler PlaybackFinished;
         public bool Playing { get; private set; }
         public bool Paused { get; private set; }
 
-        public WindowsSound(string path)
+        public WindowsSound(string? path)
         {
             _path = path;
             Playing = false;
@@ -92,6 +92,11 @@ namespace RayCasting.Sound
             }
 
             return Task.CompletedTask;
+        }
+
+        public void SetPath(string path)
+        {
+            _path = path;
         }
 
         private string ExecuteMsiCommand(string commandString)
