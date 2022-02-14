@@ -43,7 +43,7 @@ namespace RayCasting
         //private double _planeX;
         //private double _planeY;     // Here fov can be calculated by: tan(FOV / 2)
         //------------------------------------------------------------------------------------------------------------------------------
-        private Camera _camera;
+        public Camera camera { get; set; }
 
         private double _moveSpeed;
         private double _rotSpeed;
@@ -108,15 +108,7 @@ namespace RayCasting
             //_dirY = dirY;
             //_planeX = planeX;
             //_planeY = planeY;
-            _camera = new Camera()
-            {
-                posX = StartingPosX,
-                posY = StartingPosY,
-                dirX = dirX,
-                dirY = dirY,
-                planeX = planeX,
-                planeY = planeY
-            };
+            camera = new Camera(StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
         }
 
         // Make the arguments optional
@@ -201,10 +193,10 @@ namespace RayCasting
             for (int y = 0; y < _renderHeight; y++)
             {
                 // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
-                float rayDirX0 = (float)(_camera.dirX - _camera.planeX);
-                float rayDirY0 = (float)(_camera.dirY - _camera.planeY);
-                float rayDirX1 = (float)(_camera.dirX + _camera.planeX);
-                float rayDirY1 = (float)(_camera.dirY + _camera.planeY);
+                float rayDirX0 = (float)(camera.dirX - camera.planeX);
+                float rayDirY0 = (float)(camera.dirY - camera.planeY);
+                float rayDirX1 = (float)(camera.dirX + camera.planeX);
+                float rayDirY1 = (float)(camera.dirY + camera.planeY);
 
                 // Current y position compared to the center of the screen (the horizon)
                 int p = y - _renderHeight / 2;
@@ -222,8 +214,8 @@ namespace RayCasting
                 float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / _renderWidth;
 
                 // Real world coordinates of the leftmost column, this will be updated as we step to the right
-                float floorX = (float)_camera.posX + rowDistance * rayDirX0;
-                float floorY = (float)_camera.posY + rowDistance * rayDirY0;
+                float floorX = (float)camera.posX + rowDistance * rayDirX0;
+                float floorY = (float)camera.posY + rowDistance * rayDirY0;
 
                 // Adding the offset to floor X and Y because in multithreading the rendering starts from different points
                 floorX += floorStepX * startRenderWidth;
@@ -281,12 +273,12 @@ namespace RayCasting
             {
                 // Calculate ray position and direction
                 double cameraX = 2 * x / (double)_renderWidth - 1; // X-coordinate in camera space
-                double rayDirX = _camera.dirX + _camera.planeX * cameraX;
-                double rayDirY = _camera.dirY + _camera.planeY * cameraX;
+                double rayDirX = camera.dirX + camera.planeX * cameraX;
+                double rayDirY = camera.dirY + camera.planeY * cameraX;
 
                 // Wcich box of the map we're in
-                int mapX = (int)_camera.posX;
-                int mapY = (int)_camera.posY;
+                int mapX = (int)camera.posX;
+                int mapY = (int)camera.posY;
 
                 // Length of ray from current position to next X or Y-side
                 double sideDistX;
@@ -311,22 +303,22 @@ namespace RayCasting
                 if (rayDirX < 0)
                 {
                     stepX = -1;
-                    sideDistX = (_camera.posX - mapX) * deltaDistX;
+                    sideDistX = (camera.posX - mapX) * deltaDistX;
                 }
                 else
                 {
                     stepX = 1;
-                    sideDistX = (mapX + 1.0 - _camera.posX) * deltaDistX;
+                    sideDistX = (mapX + 1.0 - camera.posX) * deltaDistX;
                 }
                 if (rayDirY < 0)
                 {
                     stepY = -1;
-                    sideDistY = (_camera.posY - mapY) * deltaDistY;
+                    sideDistY = (camera.posY - mapY) * deltaDistY;
                 }
                 else
                 {
                     stepY = 1;
-                    sideDistY = (mapY + 1.0 - _camera.posY) * deltaDistY;
+                    sideDistY = (mapY + 1.0 - camera.posY) * deltaDistY;
                 }
 
                 // Perform DDA
@@ -369,8 +361,8 @@ namespace RayCasting
 
                 // Calculate value of wallX
                 double wallX; // where exactly the wall was hit
-                if (side == 0) wallX = _camera.posY + perpWallDist * rayDirY;
-                else wallX = _camera.posX + perpWallDist * rayDirX;
+                if (side == 0) wallX = camera.posY + perpWallDist * rayDirY;
+                else wallX = camera.posX + perpWallDist * rayDirX;
                 wallX -= Math.Floor(wallX);
 
                 // X coordinate on the texture
@@ -441,7 +433,7 @@ namespace RayCasting
             for (int i = 0; i < _sprites.Count; i++)
             {
                 _spriteOrder[i] = i;
-                _spriteDistance[i] = (_camera.posX - _sprites[i].posX) * (_camera.posX - _sprites[i].posX) + (_camera.posY - _sprites[i].posY) * (_camera.posY - _sprites[i].posY); // Sqrt not taken, unneeded
+                _spriteDistance[i] = (camera.posX - _sprites[i].posX) * (camera.posX - _sprites[i].posX) + (camera.posY - _sprites[i].posY) * (camera.posY - _sprites[i].posY); // Sqrt not taken, unneeded
             }
             sortSprites( ref _spriteOrder, ref _spriteDistance, _sprites.Count);
 
@@ -452,8 +444,8 @@ namespace RayCasting
                 int spriteTexHeight = _sprites[_spriteOrder[i]].texture.Height;
 
                 // Translate sprite position to relative to camera
-                double spriteX = _sprites[_spriteOrder[i]].posX - _camera.posX;
-                double spriteY = _sprites[_spriteOrder[i]].posY - _camera.posY;
+                double spriteX = _sprites[_spriteOrder[i]].posX - camera.posX;
+                double spriteY = _sprites[_spriteOrder[i]].posY - camera.posY;
 
                 Sprite sprite = _sprites[_spriteOrder[i]];
 
@@ -462,10 +454,10 @@ namespace RayCasting
                 // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
                 // [ planeY   dirY ]                                          [ -planeY  planeX ]
 
-                double invDet = 1.0 / (_camera.planeX * _camera.dirY - _camera.dirX * _camera.planeY); // Reyuired for correct matrix multiplication
+                double invDet = 1.0 / (camera.planeX * camera.dirY - camera.dirX * camera.planeY); // Reyuired for correct matrix multiplication
 
-                double transformX = invDet * (_camera.dirY * spriteX - _camera.dirX * spriteY);
-                double transformY = invDet * (-_camera.planeY * spriteX + _camera.planeX * spriteY);
+                double transformX = invDet * (camera.dirY * spriteX - camera.dirX * spriteY);
+                double transformY = invDet * (-camera.planeY * spriteX + camera.planeX * spriteY);
 
                 int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
 
@@ -573,40 +565,40 @@ namespace RayCasting
             {
                 // TODO: Figure out how to make circle collider around camera
                 // This is square collider
-                if (_camera.dirX > 0){ if (_map.map[(int)((_camera.posX + _camera.dirX * _moveSpeed) + radius), (int)(_camera.posY)] == 0) _camera.posX += _camera.dirX * _moveSpeed; }
-                else{           if (_map.map[(int)((_camera.posX + _camera.dirX * _moveSpeed) - radius), (int)(_camera.posY)] == 0) _camera.posX += _camera.dirX * _moveSpeed; }
-                if (_camera.dirY > 0){ if (_map.map[(int)(_camera.posX), (int)((_camera.posY + _camera.dirY * _moveSpeed) + radius)] == 0) _camera.posY += _camera.dirY * _moveSpeed; }
-                else{           if (_map.map[(int)(_camera.posX), (int)((_camera.posY + _camera.dirY * _moveSpeed) - radius)] == 0) _camera.posY += _camera.dirY * _moveSpeed; }
+                if (camera.dirX > 0){ if (_map.map[(int)((camera.posX + camera.dirX * _moveSpeed) + radius), (int)(camera.posY)] == 0) camera.posX += camera.dirX * _moveSpeed; }
+                else{           if (_map.map[(int)((camera.posX + camera.dirX * _moveSpeed) - radius), (int)(camera.posY)] == 0) camera.posX += camera.dirX * _moveSpeed; }
+                if (camera.dirY > 0){ if (_map.map[(int)(camera.posX), (int)((camera.posY + camera.dirY * _moveSpeed) + radius)] == 0) camera.posY += camera.dirY * _moveSpeed; }
+                else{           if (_map.map[(int)(camera.posX), (int)((camera.posY + camera.dirY * _moveSpeed) - radius)] == 0) camera.posY += camera.dirY * _moveSpeed; }
             }
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (_camera.dirX > 0){ if (_map.map[(int)((_camera.posX - _camera.dirX * _moveSpeed) - radius), (int)(_camera.posY)] == 0) _camera.posX -= _camera.dirX * _moveSpeed; }
-                else {          if (_map.map[(int)((_camera.posX - _camera.dirX * _moveSpeed) + radius), (int)(_camera.posY)] == 0) _camera.posX -= _camera.dirX * _moveSpeed; }
-                if (_camera.dirY > 0){ if (_map.map[(int)(_camera.posX), (int)((_camera.posY - _camera.dirY * _moveSpeed) - radius)] == 0) _camera.posY -= _camera.dirY * _moveSpeed; }
-                else {          if (_map.map[(int)(_camera.posX), (int)((_camera.posY - _camera.dirY * _moveSpeed) + radius)] == 0) _camera.posY -= _camera.dirY * _moveSpeed; }
+                if (camera.dirX > 0){ if (_map.map[(int)((camera.posX - camera.dirX * _moveSpeed) - radius), (int)(camera.posY)] == 0) camera.posX -= camera.dirX * _moveSpeed; }
+                else {          if (_map.map[(int)((camera.posX - camera.dirX * _moveSpeed) + radius), (int)(camera.posY)] == 0) camera.posX -= camera.dirX * _moveSpeed; }
+                if (camera.dirY > 0){ if (_map.map[(int)(camera.posX), (int)((camera.posY - camera.dirY * _moveSpeed) - radius)] == 0) camera.posY -= camera.dirY * _moveSpeed; }
+                else {          if (_map.map[(int)(camera.posX), (int)((camera.posY - camera.dirY * _moveSpeed) + radius)] == 0) camera.posY -= camera.dirY * _moveSpeed; }
             }
             // Rotate to the right
             if (D_Down)
             {
                 // both camera direction and camera plane must be rotated
-                double oldDirX = _camera.dirX;
-                _camera.dirX = _camera.dirX * Math.Cos(-_rotSpeed) - _camera.dirY * Math.Sin(-_rotSpeed);
-                _camera.dirY = oldDirX * Math.Sin(-_rotSpeed) + _camera.dirY * Math.Cos(-_rotSpeed);
-                double oldPlaneX = _camera.planeX;
-                _camera.planeX = _camera.planeX * Math.Cos(-_rotSpeed) - _camera.planeY * Math.Sin(-_rotSpeed);
-                _camera.planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _camera.planeY * Math.Cos(-_rotSpeed);
+                double oldDirX = camera.dirX;
+                camera.dirX = camera.dirX * Math.Cos(-_rotSpeed) - camera.dirY * Math.Sin(-_rotSpeed);
+                camera.dirY = oldDirX * Math.Sin(-_rotSpeed) + camera.dirY * Math.Cos(-_rotSpeed);
+                double oldPlaneX = camera.planeX;
+                camera.planeX = camera.planeX * Math.Cos(-_rotSpeed) - camera.planeY * Math.Sin(-_rotSpeed);
+                camera.planeY = oldPlaneX * Math.Sin(-_rotSpeed) + camera.planeY * Math.Cos(-_rotSpeed);
             }
             // Rotate to the left
             if (A_Down)
             {
                 // both camera direction and camera plane must be rotated
-                double oldDirX = _camera.dirX;
-                _camera.dirX = _camera.dirX * Math.Cos(_rotSpeed) - _camera.dirY * Math.Sin(_rotSpeed);
-                _camera.dirY = oldDirX * Math.Sin(_rotSpeed) + _camera.dirY * Math.Cos(_rotSpeed);
-                double oldPlaneX = _camera.planeX;
-                _camera.planeX = _camera.planeX * Math.Cos(_rotSpeed) - _camera.planeY * Math.Sin(_rotSpeed);
-                _camera.planeY = oldPlaneX * Math.Sin(_rotSpeed) + _camera.planeY * Math.Cos(_rotSpeed);
+                double oldDirX = camera.dirX;
+                camera.dirX = camera.dirX * Math.Cos(_rotSpeed) - camera.dirY * Math.Sin(_rotSpeed);
+                camera.dirY = oldDirX * Math.Sin(_rotSpeed) + camera.dirY * Math.Cos(_rotSpeed);
+                double oldPlaneX = camera.planeX;
+                camera.planeX = camera.planeX * Math.Cos(_rotSpeed) - camera.planeY * Math.Sin(_rotSpeed);
+                camera.planeY = oldPlaneX * Math.Sin(_rotSpeed) + camera.planeY * Math.Cos(_rotSpeed);
             }
         }
 
@@ -625,12 +617,6 @@ namespace RayCasting
         //    _dirX = DirX;
         //    _dirY = DirY;
         //}
-
-        // Temporary usage of camera
-        public void AddCamera(Camera camera)
-        {
-            _camera = camera;
-        }
 
         // Runs rendering multithreaded
         /// <summary>

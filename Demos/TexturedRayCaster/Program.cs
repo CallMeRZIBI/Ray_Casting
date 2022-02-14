@@ -75,15 +75,7 @@ namespace TexturedRayCastingDemo
             map.LoadMap("./maps/map1.json");
 
             // Creating camera              Only temprary used
-            Camera camera = new Camera
-            {
-                posX = posX,
-                posY = posY,
-                dirX = -1,
-                dirY = 0,
-                planeX = 0f,
-                planeY = 0.66f
-            };
+            Camera camera = new Camera(posX, posY, -1, 0, 0f, 0.66f);
 
             // Generating textures
             string[] TexPaths =
@@ -202,7 +194,7 @@ namespace TexturedRayCastingDemo
                 RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
                 RCaster.CreateMap(map, posX, posY);
 
-                RCaster.AddCamera(camera);          // Teporary usage of camera
+                RCaster.camera = camera;            // Teporary usage of camera
 
                 RCaster.UseFloorCeilingTextures(3, 6);
                 //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});

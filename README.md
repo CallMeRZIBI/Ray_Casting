@@ -129,7 +129,7 @@ and give it those parameters as argument
 
 #
 
-### Move Camera
+### Move Camera - end of life
 ### There is default movement with W A S D implemented, to use it you have to call this method
 ```C#
 SimpleRayCaster.Move(W_Down, A_Down, S_Down, D_Down);
@@ -168,6 +168,31 @@ rayCaster.GetRawBuffer();
 returning value
 - 3D byte array which you can directly use as RGB texture for OpenGL
 
+#
+
+## **Camera** - early version
+```C#
+RayCasting.Camera camera = new Camera();
+```
+you can give those arguments to constructor:
+- posX - double corresponding to position on X axis
+- posY - double corresponding to position on Y axis
+- dirX - double corresponding of X direction
+- dirY - double corresponding of Y direction
+- planeX - double (default is 0) correspond to
+- planeY - double (default is 0.66) correspond to
+
+You can set the position of the camera with builtin movement, SetCameraPos method or by changing individual public variables
+
+### Setting camera position
+```C#
+camera.SetCameraPos(PosX, PosY, DirX, DirY);
+```
+and give it tose arguments:
+- PosX - double corresponding to position on X axis
+- PosY - double corresponding to position on Y axis
+- DirX - double corresponding of X direction
+- DirY - double corresponding of Y direction
 #
 
 ## **Map**
