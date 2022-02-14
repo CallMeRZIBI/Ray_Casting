@@ -14,23 +14,23 @@ namespace RayCasting
         // TODO: Or make camera just struct that will contain position and leave it as it is cause that would be simplier and also the game engine would work as it works now
         //       and not as new engines where you have your level etc. that just holds all those things
 
-        public double _posX { get; set; }
-        public double _posY { get; set; }
-        public double _dirX { get; set; }
-        public double _dirY { get; set; }
-        public double _planeX { get; set; }
-        public double _planeY { get; set; }
+        public double posX { get; set; }
+        public double posY { get; set; }
+        public double dirX { get; set; }
+        public double dirY { get; set; }
+        public double planeX { get; set; }
+        public double planeY { get; set; }
 
         public Camera(){}
 
-        public Camera(double posX, double posY, double dirX, double dirY, double planeX, double planeY)
+        public Camera(double IposX, double IposY, double IdirX, double IdirY, double IplaneX, double IplaneY)
         {
-            _posX = posX;
-            _posY = posY;
-            _dirX = dirX;
-            _dirY = dirY;
-            _planeX = planeX;
-            _planeY = planeY;
+            posX = IposX;
+            posY = IposY;
+            dirX = IdirX;
+            dirY = IdirY;
+            planeX = IplaneX;
+            planeY = IplaneY;
         }
 
         /// <summary>
@@ -42,10 +42,10 @@ namespace RayCasting
         /// <param name="DirY">Y direction (to which Y position you are rotated)</param>
         public void SetCameraPos(double PosX, double PosY, double DirX, double DirY)
         {
-            _posX = PosX;
-            _posY = PosY;
-            _dirX = DirX;
-            _dirY = DirY;
+            posX = PosX;
+            posY = PosY;
+            dirX = DirX;
+            dirY = DirY;
         }
 
         // Movement won't be implemented in camera but in RayCaster because it needs map
