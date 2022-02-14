@@ -61,8 +61,8 @@ namespace RayCasting.Sound
             Playing = true;
             _playbackTimer.Start();
             _playStopwatch.Start();
-            _playbackTimer.Elapsed += HandlePlaybackFinished; // Its always setting Playing to false
-
+            _playbackTimer.Elapsed += HandlePlaybackFinished;
+            
             return Task.CompletedTask;
         }
 
@@ -110,7 +110,7 @@ namespace RayCasting.Sound
             {
                 var errorSb = new StringBuilder($"Error executing MCI command '{commandString}'. Error code: {result}.");
                 var sb2 = new StringBuilder(128);
-
+                
                 mciGetErrorString((int)result, sb2, 128);
                 errorSb.Append($" Message: {sb2}");
 

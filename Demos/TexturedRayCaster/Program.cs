@@ -209,10 +209,12 @@ namespace TexturedRayCastingDemo
                 D_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Playing walk sound
-                if ((W_down || S_down)) { 
-                    if(!walk.Playing){
-                        walk.Play(); 
-                    } 
+                if ((W_down || S_down))
+                {
+                    if (!walk.Playing)
+                    {
+                        walk.Play();
+                    }
                 }
                 else walk.Stop();
 

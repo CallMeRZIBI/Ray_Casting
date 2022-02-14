@@ -34,6 +34,7 @@ namespace RayCasting
         private readonly Stopwatch _timer;
         private double _deltaTime;
 
+        // TODO: Recreate this part to camera object -----------------------------------------------------------------------------------
         // Getting info about positioning
         private double _posX;
         private double _posY;
@@ -41,6 +42,7 @@ namespace RayCasting
         private double _dirY;
         private double _planeX;
         private double _planeY;     // Here fov can be calculated by: tan(FOV / 2)
+        //------------------------------------------------------------------------------------------------------------------------------
 
         private double _moveSpeed;
         private double _rotSpeed;
@@ -59,6 +61,12 @@ namespace RayCasting
         private bool _isMultithreaded;
         private int _threads;
 
+        /// <summary>
+        /// Creates Textured RayCaster.
+        /// </summary>
+        /// <param name="screenWidth">Getting width of rendered screen.</param>
+        /// <param name="screenHeight">Getting Height of rendered screen.</param>
+        /// <param name="rederingScale">Getting scale of rendering. Be careful with values, so try if screenWidth and screenHeight multiplied by renderingScale always outputs full number. Otherwise weird graphical artifacts can happen. Also don't use numbers larger than one.</param>
         public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
         {
             _screenWidth = screenWidth;
@@ -80,6 +88,16 @@ namespace RayCasting
             _isMultithreaded = false;
         }
 
+        /// <summary>
+        /// Create map with location of camera.
+        /// </summary>
+        /// <param name="map">Map object</param>
+        /// <param name="StartingPosX">Initial position of camera in X axis</param>
+        /// <param name="StartingPosY">Initial position of camera in Y axis</param>
+        /// <param name="dirX">X direction (to which X position you are rotated)</param>
+        /// <param name="dirY">Y direction (to which Y position you are rotated)</param>
+        /// <param name="planeX"></param>
+        /// <param name="planeY"></param>
         public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
             _map = map;
@@ -92,6 +110,9 @@ namespace RayCasting
         }
 
         // Make the arguments optional
+        /// <summary>
+        /// Updates Frame.
+        /// </summary>
         public void UpdateRayCast()
         {
             switch (_isMultithreaded)
@@ -511,7 +532,7 @@ namespace RayCasting
         }
 
         // Movement
-        // TODO: Add some boundaries around player for normal collision
+        // TODO: Update boundaries to circle boundaries
         /// <summary>
         /// Default built-in movement the doom style.
         /// </summary>
@@ -519,13 +540,15 @@ namespace RayCasting
         /// <param name="A_Down"></param>
         /// <param name="S_Down"></param>
         /// <param name="D_Down"></param>
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        /// <param name="moveSpeed"></param>
+        /// <param name="rotSpeed"></param>
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
             float radius = 0.25f;
 
             // speed modifiers
-            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
-            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
+            _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
+            _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
 
             // timing for input and FPS counter
             _timer.Stop();
@@ -578,7 +601,6 @@ namespace RayCasting
         }
 
         // User can set camera position and direction by himself if default movement is not choosen
-        // TODO: Probably create Camera class or struct
         /// <summary>
         /// Sets camera position and rotation when use default movement is not choosen
         /// </summary>

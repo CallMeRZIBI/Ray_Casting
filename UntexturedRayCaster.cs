@@ -57,6 +57,16 @@ namespace RayCasting
             _rotSpeed = 0;
         }
 
+        /// <summary>
+        /// Create map with location of camera.
+        /// </summary>
+        /// <param name="map">Map object</param>
+        /// <param name="StartingPosX">Initial position of camera in X axis</param>
+        /// <param name="StartingPosY">Initial position of camera in Y axis</param>
+        /// <param name="dirX">X direction (to which X position you are rotated)</param>
+        /// <param name="dirY">Y direction (to which Y position you are rotated)</param>
+        /// <param name="planeX"></param>
+        /// <param name="planeY"></param>
         public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
             _map = map;
@@ -69,6 +79,9 @@ namespace RayCasting
         }
 
         // Update RayCast calculations with given pos and save vertices in OpenGL format which later can be fromated
+        /// <summary>
+        /// Updates Frame.
+        /// </summary>
         public void UpdateRayCast()
         {
             for (int x = 0; x < _renderWidth; x++)
@@ -203,13 +216,15 @@ namespace RayCasting
         /// <param name="A_Down"></param>
         /// <param name="S_Down"></param>
         /// <param name="D_Down"></param>
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down)
+        /// <param name="moveSpeed"></param>
+        /// <param name="rotSpeed"></param>
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
             float radius = 0.25f;
 
             // Speed modifiers
-            _moveSpeed = _deltaTime * 5.0; // Constant value is idk
-            _rotSpeed = _deltaTime * 3.0; // Constant value is idk
+            _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
+            _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
 
             // Timing for input and FPS counter
             _timer.Stop();
