@@ -57,7 +57,8 @@ namespace RayCasting
 
         public void loadBuffer(byte[,,] buff)
         {
-            buffer = buff;
+            buffer = new byte[buff.GetLength(0),buff.GetLength(1),buff.GetLength(2)];
+            Array.Copy(buff, buffer, buff.Length);                                      // Needs to be copy otherwise it will just take reference of the array and overwrite with each other camera
         }
         // Movement won't be implemented in camera but in RayCaster because it needs map
     }

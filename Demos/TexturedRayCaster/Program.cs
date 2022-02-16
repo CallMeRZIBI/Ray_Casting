@@ -228,11 +228,14 @@ namespace TexturedRayCastingDemo
                 else walk.Stop();
 
                 // Ray Casting is implemented in the TexturedRayCaster.UpdateRayCast method
-                RCaster.Move(W_down, A_down, S_down, D_down);
+                //RCaster.Move(W_down, A_down, S_down, D_down);
+                RCaster.Move(W_down, A_down, S_down, D_down, camera);
+                //RCaster.Move(W_down, A_down, S_down, D_down, camera2);
                 RCaster.UpdateRayCast();
 
                 //data = RCaster.GetRawBuffer();        // Deprecated by adding Camera class that holds it's own buffer
                 data = camera.buffer;
+                //data = camera2.buffer;
 
                 // Creating Texture from the data
                 DrawPixelArray(data, window.Size.X, window.Size.Y);

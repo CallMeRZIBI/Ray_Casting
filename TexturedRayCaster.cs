@@ -615,13 +615,10 @@ namespace RayCasting
             }
         }
 
-        // Implementing default movement for only one camera - not working
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int camId, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
+        // It doesn't correctly choose camera by id, so for now getting it by it's object
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, Camera camera, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
-            // This is not finding the right index
-            Camera cam = _cameras.Find(item => item.Id == item.Id);
-            int camIndex = _cameras.FindIndex(item => item == cam);
-            Console.WriteLine($"camId: {camId}, camIndex: {cameraIndex}");
+            int camIndex = _cameras.FindIndex(item => item == camera);
             float radius = 0.25f;
 
             // speed modifiers
