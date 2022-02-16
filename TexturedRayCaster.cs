@@ -43,7 +43,8 @@ namespace RayCasting
         //private double _planeX;
         //private double _planeY;     // Here fov can be calculated by: tan(FOV / 2)
         //------------------------------------------------------------------------------------------------------------------------------
-        public Camera camera { get; set; }
+        private List<Camera> _cameras;
+        private int cameraIndex; // local variable for more readable code
 
         private double _moveSpeed;
         private double _rotSpeed;
@@ -87,19 +88,15 @@ namespace RayCasting
             _rotSpeed = 0;
 
             _isMultithreaded = false;
+
+            _cameras = new List<Camera>();
         }
 
         /// <summary>
         /// Create map with location of camera.
         /// </summary>
         /// <param name="map">Map object</param>
-        /// <param name="StartingPosX">Initial position of camera in X axis</param>
-        /// <param name="StartingPosY">Initial position of camera in Y axis</param>
-        /// <param name="dirX">X direction (to which X position you are rotated)</param>
-        /// <param name="dirY">Y direction (to which Y position you are rotated)</param>
-        /// <param name="planeX"></param>
-        /// <param name="planeY"></param>
-        public void CreateMap(Map map, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public void CreateMap(Map map)
         {
             _map = map;
             //_posX = StartingPosX;
@@ -108,77 +105,92 @@ namespace RayCasting
             //_dirY = dirY;
             //_planeX = planeX;
             //_planeY = planeY;
-            camera = new Camera(StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
         }
 
-        // Make the arguments optional
+        public void CreateCamera(Camera camera)
+        {
+            _cameras.Add(camera);
+        }
+
+        public void CreateCamera(double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        {
+            Camera cam = new Camera(StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
+            _cameras.Add(cam);
+        }
+
         /// <summary>
         /// Updates Frame.
         /// </summary>
         public void UpdateRayCast()
         {
-            switch (_isMultithreaded)
+            for (int count = 0; count < _cameras.Count(); count++)
             {
-                case false:
-                    // Floor Casting
-                    if (_DrawFloorCeiling) CastFloor(0, _renderWidth);
+                cameraIndex = count;
+                switch (_isMultithreaded)
+                {
+                    case false:
+                        // Floor Casting
+                        if (_DrawFloorCeiling) CastFloor(0, _renderWidth);
 
-                    // Wall Casting
-                    CastWall(0, _renderWidth);
+                        // Wall Casting
+                        CastWall(0, _renderWidth);
 
-                    // Sprite Casting
-                    CastSprites();
-                    break;
-                case true:
-                    // TODO: also you can create three different buffers for floorCasting, wallCasting, spriteCasting and render them multithreadly and then combine those buffers - was working on it
+                        // Sprite Casting
+                        CastSprites();
+                        break;
+                    case true:
+                        // TODO: also you can create three different buffers for floorCasting, wallCasting, spriteCasting and render them multithreadly and then combine those buffers - was working on it
 
-                    // TODO: in CastFloor fix the screen space when running from multiple threads it uses the first
-                    // Multithreaded Floor Casting
-                    if (_DrawFloorCeiling)
-                    {
-                        int FloorThreads = _threads;
-                        using(ManualResetEvent resetEvent = new ManualResetEvent(false))
+                        // TODO: in CastFloor fix the screen space when running from multiple threads it uses the first
+                        // Multithreaded Floor Casting
+                        if (_DrawFloorCeiling)
+                        {
+                            int FloorThreads = _threads;
+                            using (ManualResetEvent resetEvent = new ManualResetEvent(false))
+                            {
+                                List<int> list = new List<int>();
+                                foreach (int i in Enumerable.Range(0, FloorThreads))
+                                {
+                                    list.Add(i);
+                                    // Closure for anonymous function call begins here, because foreach works a bit differently than for.
+                                    ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
+                                    {
+                                        CastFloor(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
+                                        if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
+                                    }), list[i]);
+                                }
+
+                                resetEvent.WaitOne();
+                            }
+                        }
+
+                        // MultiThreaded Wall Casting
+                        int WallThreads = _threads;
+                        using (ManualResetEvent resetEvent = new ManualResetEvent(false))
                         {
                             List<int> list = new List<int>();
-                            foreach(int i in Enumerable.Range(0, FloorThreads))
+                            foreach (int i in Enumerable.Range(0, WallThreads))
                             {
                                 list.Add(i);
                                 // Closure for anonymous function call begins here, because foreach works a bit differently than for.
                                 ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                                 {
-                                    CastFloor(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
-                                    if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
+                                    CastWall(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
+                                    if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
                                 }), list[i]);
                             }
 
                             resetEvent.WaitOne();
                         }
-                    }
 
-                    // MultiThreaded Wall Casting
-                    int WallThreads = _threads;
-                    using (ManualResetEvent resetEvent = new ManualResetEvent(false))
-                    {
-                        List<int> list = new List<int>();
-                        foreach (int i in Enumerable.Range(0, WallThreads))
-                        {
-                            list.Add(i);
-                            // Closure for anonymous function call begins here, because foreach works a bit differently than for.
-                            ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
-                            {
-                                CastWall(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
-                                if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
-                            }), list[i]);
-                        }
+                        // TODO: probably make it mutlithreaded?
+                        // Sprite casting
+                        CastSprites();
 
-                        resetEvent.WaitOne();
-                    }
+                        break;
+                }
 
-                    // TODO: probably make it mutlithreaded?
-                    // Sprite casting
-                    CastSprites();
-
-                    break;
+                _cameras[count].loadBuffer(_buffer);
             }
         }
 
@@ -187,16 +199,17 @@ namespace RayCasting
             _deltaTime = _timer.Elapsed.TotalSeconds;
         }
 
+        // Maybye delete the cameraIndex and make it local variable for cleaner code
         // Floor Casting
         private void CastFloor(int startRenderWidth, int endRenderWidth)
         {
             for (int y = 0; y < _renderHeight; y++)
             {
                 // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
-                float rayDirX0 = (float)(camera.dirX - camera.planeX);
-                float rayDirY0 = (float)(camera.dirY - camera.planeY);
-                float rayDirX1 = (float)(camera.dirX + camera.planeX);
-                float rayDirY1 = (float)(camera.dirY + camera.planeY);
+                float rayDirX0 = (float)(_cameras[cameraIndex].dirX - _cameras[cameraIndex].planeX);
+                float rayDirY0 = (float)(_cameras[cameraIndex].dirY - _cameras[cameraIndex].planeY);
+                float rayDirX1 = (float)(_cameras[cameraIndex].dirX + _cameras[cameraIndex].planeX);
+                float rayDirY1 = (float)(_cameras[cameraIndex].dirY + _cameras[cameraIndex].planeY);
 
                 // Current y position compared to the center of the screen (the horizon)
                 int p = y - _renderHeight / 2;
@@ -214,8 +227,8 @@ namespace RayCasting
                 float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / _renderWidth;
 
                 // Real world coordinates of the leftmost column, this will be updated as we step to the right
-                float floorX = (float)camera.posX + rowDistance * rayDirX0;
-                float floorY = (float)camera.posY + rowDistance * rayDirY0;
+                float floorX = (float)_cameras[cameraIndex].posX + rowDistance * rayDirX0;
+                float floorY = (float)_cameras[cameraIndex].posY + rowDistance * rayDirY0;
 
                 // Adding the offset to floor X and Y because in multithreading the rendering starts from different points
                 floorX += floorStepX * startRenderWidth;
@@ -266,19 +279,19 @@ namespace RayCasting
             }
         }
 
-         // Casting walls
+        // Casting walls
         private void CastWall(int startRenderWidth, int endRenderWidth)
         {
             for (int x = startRenderWidth; x < endRenderWidth; x++)
             {
                 // Calculate ray position and direction
                 double cameraX = 2 * x / (double)_renderWidth - 1; // X-coordinate in camera space
-                double rayDirX = camera.dirX + camera.planeX * cameraX;
-                double rayDirY = camera.dirY + camera.planeY * cameraX;
+                double rayDirX = _cameras[cameraIndex].dirX + _cameras[cameraIndex].planeX * cameraX;
+                double rayDirY = _cameras[cameraIndex].dirY + _cameras[cameraIndex].planeY * cameraX;
 
                 // Wcich box of the map we're in
-                int mapX = (int)camera.posX;
-                int mapY = (int)camera.posY;
+                int mapX = (int)_cameras[cameraIndex].posX;
+                int mapY = (int)_cameras[cameraIndex].posY;
 
                 // Length of ray from current position to next X or Y-side
                 double sideDistX;
@@ -303,22 +316,22 @@ namespace RayCasting
                 if (rayDirX < 0)
                 {
                     stepX = -1;
-                    sideDistX = (camera.posX - mapX) * deltaDistX;
+                    sideDistX = (_cameras[cameraIndex].posX - mapX) * deltaDistX;
                 }
                 else
                 {
                     stepX = 1;
-                    sideDistX = (mapX + 1.0 - camera.posX) * deltaDistX;
+                    sideDistX = (mapX + 1.0 - _cameras[cameraIndex].posX) * deltaDistX;
                 }
                 if (rayDirY < 0)
                 {
                     stepY = -1;
-                    sideDistY = (camera.posY - mapY) * deltaDistY;
+                    sideDistY = (_cameras[cameraIndex].posY - mapY) * deltaDistY;
                 }
                 else
                 {
                     stepY = 1;
-                    sideDistY = (mapY + 1.0 - camera.posY) * deltaDistY;
+                    sideDistY = (mapY + 1.0 - _cameras[cameraIndex].posY) * deltaDistY;
                 }
 
                 // Perform DDA
@@ -361,8 +374,8 @@ namespace RayCasting
 
                 // Calculate value of wallX
                 double wallX; // where exactly the wall was hit
-                if (side == 0) wallX = camera.posY + perpWallDist * rayDirY;
-                else wallX = camera.posX + perpWallDist * rayDirX;
+                if (side == 0) wallX = _cameras[cameraIndex].posY + perpWallDist * rayDirY;
+                else wallX = _cameras[cameraIndex].posX + perpWallDist * rayDirX;
                 wallX -= Math.Floor(wallX);
 
                 // X coordinate on the texture
@@ -433,7 +446,7 @@ namespace RayCasting
             for (int i = 0; i < _sprites.Count; i++)
             {
                 _spriteOrder[i] = i;
-                _spriteDistance[i] = (camera.posX - _sprites[i].posX) * (camera.posX - _sprites[i].posX) + (camera.posY - _sprites[i].posY) * (camera.posY - _sprites[i].posY); // Sqrt not taken, unneeded
+                _spriteDistance[i] = (_cameras[cameraIndex].posX - _sprites[i].posX) * (_cameras[cameraIndex].posX - _sprites[i].posX) + (_cameras[cameraIndex].posY - _sprites[i].posY) * (_cameras[cameraIndex].posY - _sprites[i].posY); // Sqrt not taken, unneeded
             }
             sortSprites( ref _spriteOrder, ref _spriteDistance, _sprites.Count);
 
@@ -444,8 +457,8 @@ namespace RayCasting
                 int spriteTexHeight = _sprites[_spriteOrder[i]].texture.Height;
 
                 // Translate sprite position to relative to camera
-                double spriteX = _sprites[_spriteOrder[i]].posX - camera.posX;
-                double spriteY = _sprites[_spriteOrder[i]].posY - camera.posY;
+                double spriteX = _sprites[_spriteOrder[i]].posX - _cameras[cameraIndex].posX;
+                double spriteY = _sprites[_spriteOrder[i]].posY - _cameras[cameraIndex].posY;
 
                 Sprite sprite = _sprites[_spriteOrder[i]];
 
@@ -454,10 +467,10 @@ namespace RayCasting
                 // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
                 // [ planeY   dirY ]                                          [ -planeY  planeX ]
 
-                double invDet = 1.0 / (camera.planeX * camera.dirY - camera.dirX * camera.planeY); // Reyuired for correct matrix multiplication
+                double invDet = 1.0 / (_cameras[cameraIndex].planeX * _cameras[cameraIndex].dirY - _cameras[cameraIndex].dirX * _cameras[cameraIndex].planeY); // Reyuired for correct matrix multiplication
 
-                double transformX = invDet * (camera.dirY * spriteX - camera.dirX * spriteY);
-                double transformY = invDet * (-camera.planeY * spriteX + camera.planeX * spriteY);
+                double transformX = invDet * (_cameras[cameraIndex].dirY * spriteX - _cameras[cameraIndex].dirX * spriteY);
+                double transformY = invDet * (-_cameras[cameraIndex].planeY * spriteX + _cameras[cameraIndex].planeX * spriteY);
 
                 int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
 
@@ -563,42 +576,105 @@ namespace RayCasting
             // Move froward if no wall in front of you
             if (W_Down)
             {
-                // TODO: Figure out how to make circle collider around camera
-                // This is square collider
-                if (camera.dirX > 0){ if (_map.map[(int)((camera.posX + camera.dirX * _moveSpeed) + radius), (int)(camera.posY)] == 0) camera.posX += camera.dirX * _moveSpeed; }
-                else{           if (_map.map[(int)((camera.posX + camera.dirX * _moveSpeed) - radius), (int)(camera.posY)] == 0) camera.posX += camera.dirX * _moveSpeed; }
-                if (camera.dirY > 0){ if (_map.map[(int)(camera.posX), (int)((camera.posY + camera.dirY * _moveSpeed) + radius)] == 0) camera.posY += camera.dirY * _moveSpeed; }
-                else{           if (_map.map[(int)(camera.posX), (int)((camera.posY + camera.dirY * _moveSpeed) - radius)] == 0) camera.posY += camera.dirY * _moveSpeed; }
+                 // TODO: Figure out how to make circle collider around camera
+                 // This is square collider
+                 if (_cameras[cameraIndex].dirX > 0) { if (_map.map[(int)((_cameras[cameraIndex].posX + _cameras[cameraIndex].dirX * _moveSpeed) + radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX += _cameras[cameraIndex].dirX * _moveSpeed; }
+                 else { if (_map.map[(int)((_cameras[cameraIndex].posX + _cameras[cameraIndex].dirX * _moveSpeed) - radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX += _cameras[cameraIndex].dirX * _moveSpeed; }
+                 if (_cameras[cameraIndex].dirY > 0) { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY + _cameras[cameraIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[cameraIndex].posY += _cameras[cameraIndex].dirY * _moveSpeed; }
+                 else { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY + _cameras[cameraIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[cameraIndex].posY += _cameras[cameraIndex].dirY * _moveSpeed; }
             }
             // Move backwards if no wall behind you
             if (S_Down)
             {
-                if (camera.dirX > 0){ if (_map.map[(int)((camera.posX - camera.dirX * _moveSpeed) - radius), (int)(camera.posY)] == 0) camera.posX -= camera.dirX * _moveSpeed; }
-                else {          if (_map.map[(int)((camera.posX - camera.dirX * _moveSpeed) + radius), (int)(camera.posY)] == 0) camera.posX -= camera.dirX * _moveSpeed; }
-                if (camera.dirY > 0){ if (_map.map[(int)(camera.posX), (int)((camera.posY - camera.dirY * _moveSpeed) - radius)] == 0) camera.posY -= camera.dirY * _moveSpeed; }
-                else {          if (_map.map[(int)(camera.posX), (int)((camera.posY - camera.dirY * _moveSpeed) + radius)] == 0) camera.posY -= camera.dirY * _moveSpeed; }
+                if (_cameras[cameraIndex].dirX > 0) { if (_map.map[(int)((_cameras[cameraIndex].posX - _cameras[cameraIndex].dirX * _moveSpeed) - radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX -= _cameras[cameraIndex].dirX * _moveSpeed; }
+                else { if (_map.map[(int)((_cameras[cameraIndex].posX - _cameras[cameraIndex].dirX * _moveSpeed) + radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX -= _cameras[cameraIndex].dirX * _moveSpeed; }
+                if (_cameras[cameraIndex].dirY > 0) { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY - _cameras[cameraIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[cameraIndex].posY -= _cameras[cameraIndex].dirY * _moveSpeed; }
+                else { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY - _cameras[cameraIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[cameraIndex].posY -= _cameras[cameraIndex].dirY * _moveSpeed; }
             }
             // Rotate to the right
             if (D_Down)
             {
                 // both camera direction and camera plane must be rotated
-                double oldDirX = camera.dirX;
-                camera.dirX = camera.dirX * Math.Cos(-_rotSpeed) - camera.dirY * Math.Sin(-_rotSpeed);
-                camera.dirY = oldDirX * Math.Sin(-_rotSpeed) + camera.dirY * Math.Cos(-_rotSpeed);
-                double oldPlaneX = camera.planeX;
-                camera.planeX = camera.planeX * Math.Cos(-_rotSpeed) - camera.planeY * Math.Sin(-_rotSpeed);
-                camera.planeY = oldPlaneX * Math.Sin(-_rotSpeed) + camera.planeY * Math.Cos(-_rotSpeed);
+                double oldDirX = _cameras[cameraIndex].dirX;
+                _cameras[cameraIndex].dirX = _cameras[cameraIndex].dirX * Math.Cos(-_rotSpeed) - _cameras[cameraIndex].dirY * Math.Sin(-_rotSpeed);
+                _cameras[cameraIndex].dirY = oldDirX * Math.Sin(-_rotSpeed) + _cameras[cameraIndex].dirY * Math.Cos(-_rotSpeed);
+                double oldPlaneX = _cameras[cameraIndex].planeX;
+                _cameras[cameraIndex].planeX = _cameras[cameraIndex].planeX * Math.Cos(-_rotSpeed) - _cameras[cameraIndex].planeY * Math.Sin(-_rotSpeed);
+                _cameras[cameraIndex].planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _cameras[cameraIndex].planeY * Math.Cos(-_rotSpeed);
             }
             // Rotate to the left
             if (A_Down)
             {
                 // both camera direction and camera plane must be rotated
-                double oldDirX = camera.dirX;
-                camera.dirX = camera.dirX * Math.Cos(_rotSpeed) - camera.dirY * Math.Sin(_rotSpeed);
-                camera.dirY = oldDirX * Math.Sin(_rotSpeed) + camera.dirY * Math.Cos(_rotSpeed);
-                double oldPlaneX = camera.planeX;
-                camera.planeX = camera.planeX * Math.Cos(_rotSpeed) - camera.planeY * Math.Sin(_rotSpeed);
-                camera.planeY = oldPlaneX * Math.Sin(_rotSpeed) + camera.planeY * Math.Cos(_rotSpeed);
+                double oldDirX = _cameras[cameraIndex].dirX;
+                _cameras[cameraIndex].dirX = _cameras[cameraIndex].dirX * Math.Cos(_rotSpeed) - _cameras[cameraIndex].dirY * Math.Sin(_rotSpeed);
+                _cameras[cameraIndex].dirY = oldDirX * Math.Sin(_rotSpeed) + _cameras[cameraIndex].dirY * Math.Cos(_rotSpeed);
+                double oldPlaneX = _cameras[cameraIndex].planeX;
+                _cameras[cameraIndex].planeX = _cameras[cameraIndex].planeX * Math.Cos(_rotSpeed) - _cameras[cameraIndex].planeY * Math.Sin(_rotSpeed);
+                _cameras[cameraIndex].planeY = oldPlaneX * Math.Sin(_rotSpeed) + _cameras[cameraIndex].planeY * Math.Cos(_rotSpeed);
+            }
+        }
+
+        // Implementing default movement for only one camera - not working
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int camId, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
+        {
+            // This is not finding the right index
+            Camera cam = _cameras.Find(item => item.Id == item.Id);
+            int camIndex = _cameras.FindIndex(item => item == cam);
+            Console.WriteLine($"camId: {camId}, camIndex: {cameraIndex}");
+            float radius = 0.25f;
+
+            // speed modifiers
+            _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
+            _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
+
+            // timing for input and FPS counter
+            _timer.Stop();
+            CalculateDelatTime();
+            _timer.Reset();
+
+            // Timing for frame time
+            _timer.Start();
+
+            // Move froward if no wall in front of you
+            if (W_Down)
+            {
+                // TODO: Figure out how to make circle collider around camera
+                // This is square collider
+                if (_cameras[camIndex].dirX > 0) { if (_map.map[(int)((_cameras[camIndex].posX + _cameras[camIndex].dirX * _moveSpeed) + radius), (int)(_cameras[camIndex].posY)] == 0) _cameras[camIndex].posX += _cameras[camIndex].dirX * _moveSpeed; }
+                else { if (_map.map[(int)((_cameras[camIndex].posX + _cameras[camIndex].dirX * _moveSpeed) - radius), (int)(_cameras[camIndex].posY)] == 0) _cameras[camIndex].posX += _cameras[camIndex].dirX * _moveSpeed; }
+                if (_cameras[camIndex].dirY > 0) { if (_map.map[(int)(_cameras[camIndex].posX), (int)((_cameras[camIndex].posY + _cameras[camIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[camIndex].posY += _cameras[camIndex].dirY * _moveSpeed; }
+                else { if (_map.map[(int)(_cameras[camIndex].posX), (int)((_cameras[camIndex].posY + _cameras[camIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[camIndex].posY += _cameras[camIndex].dirY * _moveSpeed; }
+            }
+            // Move backwards if no wall behind you
+            if (S_Down)
+            {
+                if (_cameras[camIndex].dirX > 0) { if (_map.map[(int)((_cameras[camIndex].posX - _cameras[camIndex].dirX * _moveSpeed) - radius), (int)(_cameras[camIndex].posY)] == 0) _cameras[camIndex].posX -= _cameras[camIndex].dirX * _moveSpeed; }
+                else { if (_map.map[(int)((_cameras[camIndex].posX - _cameras[camIndex].dirX * _moveSpeed) + radius), (int)(_cameras[camIndex].posY)] == 0) _cameras[camIndex].posX -= _cameras[camIndex].dirX * _moveSpeed; }
+                if (_cameras[camIndex].dirY > 0) { if (_map.map[(int)(_cameras[camIndex].posX), (int)((_cameras[camIndex].posY - _cameras[camIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[camIndex].posY -= _cameras[camIndex].dirY * _moveSpeed; }
+                else { if (_map.map[(int)(_cameras[camIndex].posX), (int)((_cameras[camIndex].posY - _cameras[camIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[camIndex].posY -= _cameras[camIndex].dirY * _moveSpeed; }
+            }
+            // Rotate to the right
+            if (D_Down)
+            {
+                // both camera direction and camera plane must be rotated
+                double oldDirX = _cameras[camIndex].dirX;
+                _cameras[camIndex].dirX = _cameras[camIndex].dirX * Math.Cos(-_rotSpeed) - _cameras[camIndex].dirY * Math.Sin(-_rotSpeed);
+                _cameras[camIndex].dirY = oldDirX * Math.Sin(-_rotSpeed) + _cameras[camIndex].dirY * Math.Cos(-_rotSpeed);
+                double oldPlaneX = _cameras[camIndex].planeX;
+                _cameras[camIndex].planeX = _cameras[camIndex].planeX * Math.Cos(-_rotSpeed) - _cameras[camIndex].planeY * Math.Sin(-_rotSpeed);
+                _cameras[camIndex].planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _cameras[camIndex].planeY * Math.Cos(-_rotSpeed);
+            }
+            // Rotate to the left
+            if (A_Down)
+            {
+                // both camera direction and camera plane must be rotated
+                double oldDirX = _cameras[camIndex].dirX;
+                _cameras[camIndex].dirX = _cameras[camIndex].dirX * Math.Cos(_rotSpeed) - _cameras[camIndex].dirY * Math.Sin(_rotSpeed);
+                _cameras[camIndex].dirY = oldDirX * Math.Sin(_rotSpeed) + _cameras[camIndex].dirY * Math.Cos(_rotSpeed);
+                double oldPlaneX = _cameras[camIndex].planeX;
+                _cameras[camIndex].planeX = _cameras[camIndex].planeX * Math.Cos(_rotSpeed) - _cameras[camIndex].planeY * Math.Sin(_rotSpeed);
+                _cameras[camIndex].planeY = oldPlaneX * Math.Sin(_rotSpeed) + _cameras[camIndex].planeY * Math.Cos(_rotSpeed);
             }
         }
 
@@ -681,9 +757,11 @@ namespace RayCasting
             _spriteDistance = new double[_sprites.Count];
         }
 
-        public byte[,,] GetRawBuffer()
-        {
-            return _buffer;
-        }
+        // Deprecated by adding Camera class that holds it's own buffer
+        //public byte[,,] GetRawBuffer()
+        //{
+        //    return _buffer;
+        //}
+
     }
 }

@@ -86,7 +86,8 @@ namespace UntexturedRayCastingDemo
                 shaderProgram = LoadShaderProgram("./vertex_shader.glsl", "./fragment_shader.glsl");
                 //uniformProj = GL.GetUniformLocation(shaderProgram.id, "proj");
 
-                SimpleRCaster.CreateMap(map, posX, posY);
+                SimpleRCaster.CreateMap(map);
+                SimpleRCaster.CreateCamera(posX, posY);
             };
 
             window.RenderFrame += (FrameEventArgs args) =>

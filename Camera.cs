@@ -10,9 +10,7 @@ namespace RayCasting
     {
 
         // TODO: Give The rendered output to the camera if there will be more cameras so each one would have its own render
-        // TODO: Move the textured and untextured raycasters to the camera class so you could have "level" which can hold all the cmaeras, map, sprites...
-        // TODO: Or make camera just struct that will contain position and leave it as it is cause that would be simplier and also the game engine would work as it works now
-        //       and not as new engines where you have your level etc. that just holds all those things
+        // TODO: Like this you can have "level" which can hold all the cmaeras, map, sprites...
 
         public double posX { get; set; }
         public double posY { get; set; }
@@ -21,10 +19,18 @@ namespace RayCasting
         public double planeX { get; set; }
         public double planeY { get; set; }
 
+        public int screenWidth { get; set; }
+        public int screenHeight { get; set; }
+        public byte[,,] buffer { get; private set; }
+        public int Id { get; private set; }
+        private static int Count = 0;
+
         public Camera(){}
 
-        public Camera(double IposX, double IposY, double IdirX, double IdirY, double IplaneX, double IplaneY)
+        public Camera(double IposX, double IposY, double IdirX = -1, double IdirY = 0, double IplaneX = 0, double IplaneY = 0.66)
         {
+            Id = Count;
+            Count += 1;
             posX = IposX;
             posY = IposY;
             dirX = IdirX;
@@ -48,6 +54,11 @@ namespace RayCasting
             dirY = DirY;
         }
 
+
+        public void loadBuffer(byte[,,] buff)
+        {
+            buffer = buff;
+        }
         // Movement won't be implemented in camera but in RayCaster because it needs map
     }
 }

@@ -74,8 +74,9 @@ namespace TexturedRayCastingDemo
             Map map = new Map();
             map.LoadMap("./maps/map1.json");
 
-            // Creating camera              Only temprary used
-            Camera camera = new Camera(posX, posY, -1, 0, 0f, 0.66f);
+            // Creating camera
+            Camera camera = new Camera(posX, posY, -1, 0, 0f, 0.66f);       // Creating two cameras for demo of two cameras
+            Camera camera2 = new Camera(posX - 1, posY);
 
             // Generating textures
             string[] TexPaths =
@@ -159,15 +160,16 @@ namespace TexturedRayCastingDemo
             nws2.Size = new Vector2i(screenWidth, screenHeight);
             nws2.Title = "C# Textured Ray Caster";
 
-            GameWindow window2 = new GameWindow(gws2, nws2);
+            // Creating two windows for two cameras
+            GameWindow window = new GameWindow(gws2, nws2);
 
             // Setting up textured RayCasting
             TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, renderingScale);
 
-            ShaderProgram shaderProgram2 = new ShaderProgram(); 
-            window2.Load += () =>
+            ShaderProgram shaderProgram = new ShaderProgram(); 
+            window.Load += () =>
             {
-                shaderProgram2 = LoadShaderProgram("./TexturedShaders/vertex_shader.glsl", "./TexturedShaders/fragment_shader.glsl");
+                shaderProgram = LoadShaderProgram("./TexturedShaders/vertex_shader.glsl", "./TexturedShaders/fragment_shader.glsl");
 
                 //VertexLocation = GL.GetUniformLocation(shaderProgram2.id, "aPosition");
                 //TexCoordLocation = GL.GetUniformLocation(shaderProgram2.id, "aTexCoord");
@@ -192,27 +194,28 @@ namespace TexturedRayCastingDemo
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
                 RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
-                RCaster.CreateMap(map, posX, posY);
+                RCaster.CreateMap(map);
 
-                RCaster.camera = camera;            // Teporary usage of camera
+                RCaster.CreateCamera(camera);
+                RCaster.CreateCamera(camera2);
 
                 RCaster.UseFloorCeilingTextures(3, 6);
                 //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});
             };
 
             byte[,,] data;
-            window2.RenderFrame += (FrameEventArgs args) =>
+            window.RenderFrame += (FrameEventArgs args) =>
             {
-                GL.UseProgram(shaderProgram2.id);
+                GL.UseProgram(shaderProgram.id);
 
                 GL.ClearColor(0.5f, 0.5f, 0.5f, 1.0f);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
 
                 // Finding key presses
-                W_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.W);
-                A_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.A);
-                S_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.S);
-                D_down = window2.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
+                W_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.W);
+                A_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.A);
+                S_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.S);
+                D_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Playing walk sound
                 if ((W_down || S_down))
@@ -228,10 +231,11 @@ namespace TexturedRayCastingDemo
                 RCaster.Move(W_down, A_down, S_down, D_down);
                 RCaster.UpdateRayCast();
 
-                data = RCaster.GetRawBuffer();
+                //data = RCaster.GetRawBuffer();        // Deprecated by adding Camera class that holds it's own buffer
+                data = camera.buffer;
 
                 // Creating Texture from the data
-                DrawPixelArray(data, window2.Size.X, window2.Size.Y);
+                DrawPixelArray(data, window.Size.X, window.Size.Y);
 
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, TexHandle);
@@ -245,15 +249,15 @@ namespace TexturedRayCastingDemo
                 GL.BindVertexArray(VertexArrayObject);
                 GL.DrawElements(PrimitiveType.Triangles, indicies.Length, DrawElementsType.UnsignedInt, (IntPtr)0);
 
-                window2.SwapBuffers();
+                window.SwapBuffers();
             };
 
-            window2.Resize += (ResizeEventArgs args) =>
+            window.Resize += (ResizeEventArgs args) =>
             {
-                GL.Viewport(0, 0, window2.Size.X, window2.Size.Y);
+                GL.Viewport(0, 0, window.Size.X, window.Size.Y);
             };
 
-            window2.Run();
+            window.Run();
         }
 
         private static void DrawPixelArray(byte[,,] pixels, int width, int height)
