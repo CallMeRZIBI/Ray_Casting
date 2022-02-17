@@ -197,7 +197,7 @@ namespace TexturedRayCastingDemo
                 RCaster.CreateMap(map);
 
                 RCaster.CreateCamera(camera);
-                RCaster.CreateCamera(camera2);
+                //RCaster.CreateCamera(camera2);    // Second camera can run simoultaneously with the first one
 
                 RCaster.UseFloorCeilingTextures(3, 6);
                 //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});
@@ -218,19 +218,19 @@ namespace TexturedRayCastingDemo
                 D_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Playing walk sound
-                if ((W_down || S_down))
-                {
-                    if (!walk.Playing)
-                    {
-                        walk.Play();
-                    }
-                }
-                else walk.Stop();
+                //if ((W_down || S_down))
+                //{
+                //    if (!walk.Playing)
+                //    {
+                //        walk.Play();
+                //    }
+                //}
+                //else walk.Stop();
 
                 // Ray Casting is implemented in the TexturedRayCaster.UpdateRayCast method
                 //RCaster.Move(W_down, A_down, S_down, D_down);
-                RCaster.Move(W_down, A_down, S_down, D_down, camera);
-                //RCaster.Move(W_down, A_down, S_down, D_down, camera2);
+                RCaster.Move(W_down, A_down, S_down, D_down, camera.Id);
+                //RCaster.Move(W_down, A_down, S_down, D_down, camera2.Id);
                 RCaster.UpdateRayCast();
 
                 //data = RCaster.GetRawBuffer();        // Deprecated by adding Camera class that holds it's own buffer

@@ -34,15 +34,6 @@ namespace RayCasting
         private readonly Stopwatch _timer;
         private double _deltaTime;
 
-        // TODO: Recreate this part to camera object -----------------------------------------------------------------------------------
-        // Getting info about positioning
-        //private double _posX;
-        //private double _posY;
-        //private double _dirX;
-        //private double _dirY;
-        //private double _planeX;
-        //private double _planeY;     // Here fov can be calculated by: tan(FOV / 2)
-        //------------------------------------------------------------------------------------------------------------------------------
         private List<Camera> _cameras;
         private int cameraIndex; // local variable for more readable code
 
@@ -99,12 +90,6 @@ namespace RayCasting
         public void CreateMap(Map map)
         {
             _map = map;
-            //_posX = StartingPosX;
-            //_posY = StartingPosY;
-            //_dirX = dirX;
-            //_dirY = dirY;
-            //_planeX = planeX;
-            //_planeY = planeY;
         }
 
         public void CreateCamera(Camera camera)
@@ -123,6 +108,14 @@ namespace RayCasting
         /// </summary>
         public void UpdateRayCast()
         {
+            // timing for input and FPS counter
+            _timer.Stop();
+            CalculateDelatTime();
+            _timer.Reset();
+
+            // Timing for frame time
+            _timer.Start();
+
             for (int count = 0; count < _cameras.Count(); count++)
             {
                 cameraIndex = count;
@@ -565,14 +558,6 @@ namespace RayCasting
             _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
             _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
 
-            // timing for input and FPS counter
-            _timer.Stop();
-            CalculateDelatTime();
-            _timer.Reset();
-
-            // Timing for frame time
-            _timer.Start();
-
             // Move froward if no wall in front of you
             if (W_Down)
             {
@@ -615,23 +600,16 @@ namespace RayCasting
             }
         }
 
-        // It doesn't correctly choose camera by id, so for now getting it by it's object
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, Camera camera, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
+        // Movement for specific camera
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int cameraId, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
-            int camIndex = _cameras.FindIndex(item => item == camera);
+            Camera cam = _cameras.Find(item => item.Id == cameraId);
+            int camIndex = _cameras.FindIndex(item => item == cam);
             float radius = 0.25f;
 
             // speed modifiers
             _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
             _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
-
-            // timing for input and FPS counter
-            _timer.Stop();
-            CalculateDelatTime();
-            _timer.Reset();
-
-            // Timing for frame time
-            _timer.Start();
 
             // Move froward if no wall in front of you
             if (W_Down)
