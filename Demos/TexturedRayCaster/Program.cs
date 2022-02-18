@@ -20,7 +20,6 @@ namespace TexturedRayCastingDemo
             // Rendering things
             int screenWidth = 640;
             int screenHeight = 360;
-            float renderingScale = 1.0f;
 
             int VertexArrayObject = 0;
             int VertexBufferObject = 0;
@@ -32,8 +31,6 @@ namespace TexturedRayCastingDemo
             int TexHandle = 0;
 
             // Game things
-            int mapWidth = 24;
-            int mapHeight = 24;
             double posX = 22, posY = 12;
 
             bool W_down = false, A_down = false, S_down = false, D_down = false;
@@ -75,8 +72,8 @@ namespace TexturedRayCastingDemo
             map.LoadMap("./maps/map1.json");
 
             // Creating camera
-            Camera camera = new Camera(posX, posY, -1, 0, 0f, 0.66f);       // Creating two cameras for demo of two cameras
-            Camera camera2 = new Camera(posX - 1, posY);
+            Camera camera = new Camera(screenWidth, screenHeight, posX, posY, -1, 0, 0f, 0.66f);       // Creating two cameras for demo of two cameras
+            Camera camera2 = new Camera(screenWidth, screenHeight, posX - 1, posY);
 
             // Generating textures
             string[] TexPaths =
@@ -164,7 +161,7 @@ namespace TexturedRayCastingDemo
             GameWindow window = new GameWindow(gws2, nws2);
 
             // Setting up textured RayCasting
-            TexturedRayCaster RCaster = new TexturedRayCaster(screenWidth, screenHeight, renderingScale);
+            TexturedRayCaster RCaster = new TexturedRayCaster();
 
             ShaderProgram shaderProgram = new ShaderProgram(); 
             window.Load += () =>
@@ -193,14 +190,14 @@ namespace TexturedRayCastingDemo
                 RCaster.MultiThreaded(8);
 
                 RCaster.LoadTextures(textures);     // Loading textures to raycaster that I want to use
-                RCaster.LoadSprites(sprites);       // Loading sprites that I want to use to raycaster
+                RCaster.LoadSprites(sprites);       // Loading sprites that I want to use
                 RCaster.CreateMap(map);
 
                 RCaster.CreateCamera(camera);
-                //RCaster.CreateCamera(camera2);    // Second camera can run simoultaneously with the first one
+                RCaster.CreateCamera(camera2);    // Second camera can run simoultaneously with the first one
 
                 RCaster.UseFloorCeilingTextures(3, 6);
-                //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});
+                //RCaster.UseFloorCeilingColors(new byte[] {0,0,0 }, new byte[] { 255,255,255});    // Using colors as floor and ceiling instead of textures
             };
 
             byte[,,] data;
@@ -218,14 +215,14 @@ namespace TexturedRayCastingDemo
                 D_down = window.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D);
 
                 // Playing walk sound
-                //if ((W_down || S_down))
-                //{
-                //    if (!walk.Playing)
-                //    {
-                //        walk.Play();
-                //    }
-                //}
-                //else walk.Stop();
+                if ((W_down || S_down))
+                {
+                    if (!walk.Playing)
+                    {
+                        walk.Play();
+                    }
+                }
+                else walk.Stop();
 
                 // Ray Casting is implemented in the TexturedRayCaster.UpdateRayCast method
                 //RCaster.Move(W_down, A_down, S_down, D_down);

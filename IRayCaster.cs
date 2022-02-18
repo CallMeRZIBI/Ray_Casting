@@ -21,7 +21,7 @@ namespace RayCasting
         void CreateMap(Map map);
 
         void CreateCamera(Camera camera);
-        void CreateCamera(double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66);
+        void CreateCamera(int ScreenWidth, int ScreenHeight, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66);
 
         /// <summary>
         /// Default built-in movement the doom style.

@@ -8,10 +8,6 @@ namespace RayCasting
 {
     public class Camera
     {
-
-        // TODO: Give The rendered output to the camera if there will be more cameras so each one would have its own render
-        // TODO: Like this you can have "level" which can hold all the cmaeras, map, sprites...
-
         public double posX { get; set; }
         public double posY { get; set; }
         public double dirX { get; set; }
@@ -21,22 +17,43 @@ namespace RayCasting
 
         public int screenWidth { get; set; }
         public int screenHeight { get; set; }
-        public byte[,,] buffer { get; private set; }
+        public byte[,,] buffer { get; set; }
+        public double[] ZBuffer { get; set; }
         public int Id { get; private set; }
         private static int Count = 0;
 
-        public Camera(){}
-
-        public Camera(double IposX, double IposY, double IdirX = -1, double IdirY = 0, double IplaneX = 0, double IplaneY = 0.66)
+        public Camera(int IScreenWidth, int IScreenHeight)
         {
-            Id = Count;
-            Count += 1;
+            createId();
+            createBuffer(IScreenWidth, IScreenHeight);
+        }
+
+        public Camera(int IScreenWidth, int IScreenHeight, double IposX, double IposY, double IdirX = -1, double IdirY = 0, double IplaneX = 0, double IplaneY = 0.66)
+        {
+            createId();
+            createBuffer(IScreenWidth, IScreenHeight);
+
+            screenWidth = IScreenWidth;
+            screenHeight = IScreenHeight;
             posX = IposX;
             posY = IposY;
             dirX = IdirX;
             dirY = IdirY;
             planeX = IplaneX;
             planeY = IplaneY;
+            Console.WriteLine($"Creating Camera with Id {Id}");
+        }
+
+        private void createBuffer(int X, int Y)
+        {
+            buffer = new byte[Y, X, 3];
+            ZBuffer = new double[X];
+        }
+
+        private void createId()
+        {
+            Id = Count;
+            Count += 1;
         }
 
         /// <summary>

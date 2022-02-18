@@ -10,15 +10,15 @@ namespace RayCasting
 {
     public class TexturedRayCaster : IRayCaster
     {
-        private readonly int _screenWidth;
-        private readonly int _screenHeight;
-        private readonly int _renderWidth;
-        private readonly int _renderHeight;
+        //private readonly int _screenWidth;    // Deprecated due to adding camera
+        //private readonly int _screenHeight;   // Deprecated due to adding camera
+        //private readonly int _renderWidth;    // Deprecated due to adding camera
+        //private readonly int _renderHeight;   // Deprecated due to adding camera
 
-        private byte[,,] _buffer;
+        //private byte[,,] _buffer;             // Deprecated due to adding camera
 
-        // 1D Zbuffer
-        private double[] _ZBuffer;
+        //// 1D Zbuffer
+        //private double[] _ZBuffer;            // Deprecated due to adding camera
 
         private List<Texture> _texture;
         private List<Sprite> _sprites;
@@ -57,19 +57,8 @@ namespace RayCasting
         /// <summary>
         /// Creates Textured RayCaster.
         /// </summary>
-        /// <param name="screenWidth">Getting width of rendered screen.</param>
-        /// <param name="screenHeight">Getting Height of rendered screen.</param>
-        /// <param name="rederingScale">Getting scale of rendering. Be careful with values, so try if screenWidth and screenHeight multiplied by renderingScale always outputs full number. Otherwise weird graphical artifacts can happen. Also don't use numbers larger than one.</param>
-        public TexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
+        public TexturedRayCaster()
         {
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
-            // It is sometimes creating weird graphical artifacts so maybye fix it later?
-            _renderWidth = (int)(_screenWidth * rederingScale);
-            _renderHeight = (int)(_screenHeight * rederingScale);
-
-            _buffer = new byte[_renderHeight, _renderWidth, 3]; // Y-coordinate first because it works per scanline
-            _ZBuffer = new double[_renderWidth];
             _texture = new List<Texture>();
 
             _timer = new Stopwatch();
@@ -97,9 +86,9 @@ namespace RayCasting
             _cameras.Add(camera);
         }
 
-        public void CreateCamera(double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public void CreateCamera(int ScreenWidth, int ScreenHeight, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
-            Camera cam = new Camera(StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
+            Camera cam = new Camera(ScreenWidth, ScreenHeight, StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
             _cameras.Add(cam);
         }
 
@@ -123,10 +112,10 @@ namespace RayCasting
                 {
                     case false:
                         // Floor Casting
-                        if (_DrawFloorCeiling) CastFloor(0, _renderWidth);
+                        if (_DrawFloorCeiling) CastFloor(0, _cameras[cameraIndex].screenWidth);
 
                         // Wall Casting
-                        CastWall(0, _renderWidth);
+                        CastWall(0, _cameras[cameraIndex].screenWidth);
 
                         // Sprite Casting
                         CastSprites();
@@ -148,7 +137,7 @@ namespace RayCasting
                                     // Closure for anonymous function call begins here, because foreach works a bit differently than for.
                                     ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                                     {
-                                        CastFloor(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
+                                        CastFloor(i * _cameras[cameraIndex].screenWidth / _threads, (i + 1) * _cameras[cameraIndex].screenWidth / _threads);
                                         if (Interlocked.Decrement(ref FloorThreads) == 0) resetEvent.Set();
                                     }), list[i]);
                                 }
@@ -168,7 +157,7 @@ namespace RayCasting
                                 // Closure for anonymous function call begins here, because foreach works a bit differently than for.
                                 ThreadPool.QueueUserWorkItem(new WaitCallback(x =>
                                 {
-                                    CastWall(i * _renderWidth / _threads, (i + 1) * _renderWidth / _threads);
+                                    CastWall(i * _cameras[cameraIndex].screenWidth / _threads, (i + 1) * _cameras[cameraIndex].screenWidth / _threads);
                                     if (Interlocked.Decrement(ref WallThreads) == 0) resetEvent.Set();
                                 }), list[i]);
                             }
@@ -182,8 +171,6 @@ namespace RayCasting
 
                         break;
                 }
-
-                _cameras[count].loadBuffer(_buffer);
             }
         }
 
@@ -196,7 +183,7 @@ namespace RayCasting
         // Floor Casting
         private void CastFloor(int startRenderWidth, int endRenderWidth)
         {
-            for (int y = 0; y < _renderHeight; y++)
+            for (int y = 0; y < _cameras[cameraIndex].screenHeight; y++)
             {
                 // rayDir for leftmost ray (x = 0) and rightmost ray (x = width)
                 float rayDirX0 = (float)(_cameras[cameraIndex].dirX - _cameras[cameraIndex].planeX);
@@ -205,10 +192,10 @@ namespace RayCasting
                 float rayDirY1 = (float)(_cameras[cameraIndex].dirY + _cameras[cameraIndex].planeY);
 
                 // Current y position compared to the center of the screen (the horizon)
-                int p = y - _renderHeight / 2;
+                int p = y - _cameras[cameraIndex].screenHeight / 2;
 
                 // Vertical position of the camera
-                float posZ = 0.5f * (float)_renderHeight;
+                float posZ = 0.5f * (float)_cameras[cameraIndex].screenHeight;
 
                 // Horizontal distance from the camera to the floor for the current row
                 // 0.5 is the z position exactly in the middle between floor and ceiling
@@ -216,8 +203,8 @@ namespace RayCasting
 
                 // Calculate the real world step vector we have to add for each x (parallel to camera plane)
                 // adding step by step avoids multiplications with a weight in the inner loop
-                float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / _renderWidth;
-                float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / _renderWidth;
+                float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / _cameras[cameraIndex].screenWidth;
+                float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / _cameras[cameraIndex].screenWidth;
 
                 // Real world coordinates of the leftmost column, this will be updated as we step to the right
                 float floorX = (float)_cameras[cameraIndex].posX + rowDistance * rayDirX0;
@@ -249,13 +236,13 @@ namespace RayCasting
                     int tx = (int)(floorTexWidth * (floorX - cellX)) & (floorTexWidth - 1);
                     int ty = (int)(floorTexHeight * (floorY - cellY)) & (floorTexHeight - 1);
 
-                    // Ceiling (symmetrical, at _renderHeight - y - 1 instead of y)
+                    // Ceiling (symmetrical, at _cameras[cameraIndex].screenHeight - y - 1 instead of y)
                     //_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte)); 
                     Array.Copy(_texture[_floorTexture].GetPixels()[floorTexWidth * ty + tx], color, 3);     // The fastest implementation
-                    _buffer[_renderHeight - y - 1, x, 0] = color[0];
-                    _buffer[_renderHeight - y - 1, x, 1] = color[1];
-                    _buffer[_renderHeight - y - 1, x, 2] = color[2];
+                    _cameras[cameraIndex].buffer[_cameras[cameraIndex].screenHeight - y - 1, x, 0] = color[0];
+                    _cameras[cameraIndex].buffer[_cameras[cameraIndex].screenHeight - y - 1, x, 1] = color[1];
+                    _cameras[cameraIndex].buffer[_cameras[cameraIndex].screenHeight - y - 1, x, 2] = color[2];
 
                     // Get the texture coordinate from the fractional part
                     tx = (int)(ceilingTexWidth * (floorX - cellX)) & (ceilingTexWidth - 1);
@@ -265,9 +252,9 @@ namespace RayCasting
                     //_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx].CopyTo(color, 0);
                     //Buffer.BlockCopy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], 0, color, 0, 3 * sizeof(byte));
                     Array.Copy(_texture[_ceilingTexture].GetPixels()[ceilingTexWidth * ty + tx], color, 3);   // The fastest implementation
-                    _buffer[y, x, 0] = color[0];
-                    _buffer[y, x, 1] = color[1];
-                    _buffer[y, x, 2] = color[2];
+                    _cameras[cameraIndex].buffer[y, x, 0] = color[0];
+                    _cameras[cameraIndex].buffer[y, x, 1] = color[1];
+                    _cameras[cameraIndex].buffer[y, x, 2] = color[2];
                 }
             }
         }
@@ -278,7 +265,7 @@ namespace RayCasting
             for (int x = startRenderWidth; x < endRenderWidth; x++)
             {
                 // Calculate ray position and direction
-                double cameraX = 2 * x / (double)_renderWidth - 1; // X-coordinate in camera space
+                double cameraX = 2 * x / (double)_cameras[cameraIndex].screenWidth - 1; // X-coordinate in camera space
                 double rayDirX = _cameras[cameraIndex].dirX + _cameras[cameraIndex].planeX * cameraX;
                 double rayDirY = _cameras[cameraIndex].dirY + _cameras[cameraIndex].planeY * cameraX;
 
@@ -352,13 +339,13 @@ namespace RayCasting
                 else perpWallDist = sideDistY - deltaDistY;
 
                 // Calculate height of line to draw on screen
-                int lineHeight = (int)(_renderHeight / perpWallDist);
+                int lineHeight = (int)(_cameras[cameraIndex].screenHeight / perpWallDist);
 
                 // Calculate lowest and highest pixel to fill in current stripe
-                int drawStart = -lineHeight / 2 + _renderHeight / 2;
+                int drawStart = -lineHeight / 2 + _cameras[cameraIndex].screenHeight / 2;
                 if (drawStart < 0) drawStart = 0;
-                int drawEnd = lineHeight / 2 + _renderHeight / 2;
-                if (drawEnd >= _renderHeight) drawEnd = _renderHeight - 1;
+                int drawEnd = lineHeight / 2 + _cameras[cameraIndex].screenHeight / 2;
+                if (drawEnd >= _cameras[cameraIndex].screenHeight) drawEnd = _cameras[cameraIndex].screenHeight - 1;
 
                 // Texturing calculations
                 int texNum = _map.map[mapX, mapY] - 1; // 1 subtracted from it so that texture 0 can be used
@@ -379,7 +366,7 @@ namespace RayCasting
                 // How much to increase the texture coordinate per screen pixel
                 double step = 1.0 * HitTexHeight / lineHeight;
                 // Starting texture coordinate
-                double texPos = (drawStart - _renderHeight / 2 + lineHeight / 2) * step;
+                double texPos = (drawStart - _cameras[cameraIndex].screenHeight / 2 + lineHeight / 2) * step;
 
                 // Draw only colors if user want it
                 if (!_DrawFloorCeiling)
@@ -387,17 +374,17 @@ namespace RayCasting
                     // Draw before line
                     for(int i = 0; i < drawStart; i++)
                     {
-                        _buffer[i, x, 0] = _floorColor[0];
-                        _buffer[i, x, 1] = _floorColor[1];
-                        _buffer[i, x, 2] = _floorColor[2];
+                        _cameras[cameraIndex].buffer[i, x, 0] = _floorColor[0];
+                        _cameras[cameraIndex].buffer[i, x, 1] = _floorColor[1];
+                        _cameras[cameraIndex].buffer[i, x, 2] = _floorColor[2];
                     }
 
                     // Draw after line
-                    for(int i = drawEnd; i < _renderHeight; i++)
+                    for(int i = drawEnd; i < _cameras[cameraIndex].screenHeight; i++)
                     {
-                        _buffer[i, x, 0] = _ceilingColor[0];
-                        _buffer[i, x, 1] = _ceilingColor[1];
-                        _buffer[i, x, 2] = _ceilingColor[2];
+                        _cameras[cameraIndex].buffer[i, x, 0] = _ceilingColor[0];
+                        _cameras[cameraIndex].buffer[i, x, 1] = _ceilingColor[1];
+                        _cameras[cameraIndex].buffer[i, x, 2] = _ceilingColor[2];
                     }
                 }
 
@@ -421,13 +408,13 @@ namespace RayCasting
                         color[1] = (byte)(color[1] / (byte)2);
                         color[2] = (byte)(color[2] / (byte)2);
                     }
-                    _buffer[y, x, 0] = color[0];
-                    _buffer[y, x, 1] = color[1];
-                    _buffer[y, x, 2] = color[2];
+                    _cameras[cameraIndex].buffer[y, x, 0] = color[0];
+                    _cameras[cameraIndex].buffer[y, x, 1] = color[1];
+                    _cameras[cameraIndex].buffer[y, x, 2] = color[2];
                 }
 
                 // SET THE ZBUFFER FOR THE SPRITE CASTING
-                _ZBuffer[x] = perpWallDist;
+                _cameras[cameraIndex].ZBuffer[x] = perpWallDist;
             }
         }
 
@@ -465,25 +452,25 @@ namespace RayCasting
                 double transformX = invDet * (_cameras[cameraIndex].dirY * spriteX - _cameras[cameraIndex].dirX * spriteY);
                 double transformY = invDet * (-_cameras[cameraIndex].planeY * spriteX + _cameras[cameraIndex].planeX * spriteY);
 
-                int spriteScreenX = (int)((_renderWidth / 2) * (1 + transformX / transformY));
+                int spriteScreenX = (int)((_cameras[cameraIndex].screenWidth / 2) * (1 + transformX / transformY));
 
                 // Moving sprite up or down
                 int vMoveScreen = (int)(sprite.posZ / transformY);
 
                 // Calculate height of the sprite on screen
-                int spriteHeight = (int)(Math.Abs((int)(_renderHeight / transformY)) * sprite.scaleY); // Using 'transformY' instead of the real distance prevents fisheye
+                int spriteHeight = (int)(Math.Abs((int)(_cameras[cameraIndex].screenHeight / transformY)) * sprite.scaleY); // Using 'transformY' instead of the real distance prevents fisheye
                 // Calculate lowest and highest pixel to fill in current stripe
-                int drawStartY = -spriteHeight / 2 + _renderHeight / 2 + vMoveScreen;
+                int drawStartY = -spriteHeight / 2 + _cameras[cameraIndex].screenHeight / 2 + vMoveScreen;
                 if (drawStartY < 0) drawStartY = 0;
-                int drawEndY = spriteHeight / 2 + _renderHeight / 2 + vMoveScreen;
-                if (drawEndY >= _renderHeight) drawEndY = _renderHeight - 1;
+                int drawEndY = spriteHeight / 2 + _cameras[cameraIndex].screenHeight / 2 + vMoveScreen;
+                if (drawEndY >= _cameras[cameraIndex].screenHeight) drawEndY = _cameras[cameraIndex].screenHeight - 1;
 
                 // Calculate width of the sprite
-                int spriteWidth = (int)(Math.Abs((int)(_renderHeight / transformY)) * sprite.scaleX);
+                int spriteWidth = (int)(Math.Abs((int)(_cameras[cameraIndex].screenHeight / transformY)) * sprite.scaleX);
                 int drawStartX = -spriteWidth / 2 + spriteScreenX;
                 if (drawStartX < 0) drawStartX = 0;
                 int drawEndX = spriteWidth / 2 + spriteScreenX;
-                if (drawEndX >= _renderWidth) drawEndX = _renderWidth - 1;
+                if (drawEndX >= _cameras[cameraIndex].screenWidth) drawEndX = _cameras[cameraIndex].screenWidth - 1;
 
                 // loop through every vertical stripe of the sprite on screen
                 for(int stripe = drawStartX; stripe < drawEndX; stripe++)
@@ -494,11 +481,11 @@ namespace RayCasting
                     // 2) It's on the screen (left)
                     // 3) It's on the screen (right)
                     // 4) ZBuffer, with perpendicular distance
-                    if(transformY > 0 && stripe > 0 && stripe < _renderWidth && transformY < _ZBuffer[stripe])
+                    if(transformY > 0 && stripe > 0 && stripe < _cameras[cameraIndex].screenWidth && transformY < _cameras[cameraIndex].ZBuffer[stripe])
                     {
                         for(int y = drawStartY; y < drawEndY - 1; y++) // For every pixel of the current stripe
                         {
-                            int d = ((y - vMoveScreen) * 256) - (_renderHeight * 128) + (spriteHeight * 128); // 256 and 128 factors to avoid floats
+                            int d = ((y - vMoveScreen) * 256) - (_cameras[cameraIndex].screenHeight * 128) + (spriteHeight * 128); // 256 and 128 factors to avoid floats
                             int texY = ((d * spriteTexHeight) / spriteHeight) / 256;
                             byte[] color = new byte[4];
                             // Out of range exception
@@ -510,9 +497,9 @@ namespace RayCasting
                             // TODO: Change the invisible color to alfa = 0 or make calculations so you can have semi transparent sprites
                             if (color[3] != 0) // Paint pixel if alfa isn't maximum
                             {
-                                _buffer[y, stripe, 0] = (byte)((color[0] * color[3] + _buffer[y, stripe, 0] * (255 - color[3])) >> 8); // Uses transparency, now using byte shifting instead of dividing,
-                                _buffer[y, stripe, 1] = (byte)((color[1] * color[3] + _buffer[y, stripe, 1] * (255 - color[3])) >> 8); // I need to divide by 255 but 2 power 8 is 256 so it's not as precise, but I think it's negligible
-                                _buffer[y, stripe, 2] = (byte)((color[2] * color[3] + _buffer[y, stripe, 2] * (255 - color[3])) >> 8);
+                                _cameras[cameraIndex].buffer[y, stripe, 0] = (byte)((color[0] * color[3] + _cameras[cameraIndex].buffer[y, stripe, 0] * (255 - color[3])) >> 8); // Uses transparency, now using byte shifting instead of dividing,
+                                _cameras[cameraIndex].buffer[y, stripe, 1] = (byte)((color[1] * color[3] + _cameras[cameraIndex].buffer[y, stripe, 1] * (255 - color[3])) >> 8); // I need to divide by 255 but 2 power 8 is 256 so it's not as precise, but I think it's negligible
+                                _cameras[cameraIndex].buffer[y, stripe, 2] = (byte)((color[2] * color[3] + _cameras[cameraIndex].buffer[y, stripe, 2] * (255 - color[3])) >> 8);
                             }
                         }
                     }

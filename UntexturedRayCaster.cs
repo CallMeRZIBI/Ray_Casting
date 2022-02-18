@@ -308,9 +308,9 @@ namespace RayCasting
             _camera = camera;
         }
 
-        public void CreateCamera(double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public void CreateCamera(int ScreenWidth, int ScreenHeight, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
-            _camera = new Camera(StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
+            _camera = new Camera(ScreenWidth, ScreenHeight ,StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
         }
 
         private struct Color
