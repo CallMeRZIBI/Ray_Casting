@@ -73,13 +73,10 @@ SimpleRayCaster.GetGLVertices();
 
 ## **Ray Caster**
 ![Textured Ray Caster](https://github.com/CallMeRZIBI/Ray_Casting/blob/Development/readme/textured_ray_caster.gif)
-### When creating ray caster you must give it those arguments:
+### You create RayCaster like this:
 ```C#
-RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster(screenWidth, screenHeight, renderingScale);
+RayCasting.TexturedRayCaster rayCaster = new RayCasting.TexturedRayCaster();
 ```
-- screenWidth - int 
-- screenHeight - int
-- renderingScale - int - scales the rendering width and size (default is 1) *isn't working at the moment
 
 #
 
@@ -95,16 +92,10 @@ and give it those parameters
 
 ### To create map that you can walk on you have to call this method
 ```C#
-rayCaster.CreateMap(map, StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
+rayCaster.CreateMap(map);
 ```
 and give it those parameters
 - map - 2D array of numbers which are corresponding to indexes of textures - 1 (0 isn't anything)
-- StartingPosX - double which corresponds to position of player X axis
-- StartingPosY - double which corresponds to position of player Y axis
-- dirX - double (default is -1) correspond to rotation
-- dirY - double (default is 0) correspond to rotation
-- planeX - double (default is 0) correspond to
-- planeY - double (default is 0.66) correspond to
 
 #
 
@@ -129,28 +120,18 @@ and give it those parameters as argument
 
 #
 
-### Move Camera - end of life
 ### There is default movement with W A S D implemented, to use it you have to call this method
 ```C#
-SimpleRayCaster.Move(W_Down, A_Down, S_Down, D_Down);
+SimpleRayCaster.Move(W_Down, A_Down, S_Down, D_Down, cameraId, moveSpeed, rotSpeed);
 ```
 and give it those parameters as arguments for implemented movement
 - W_Down (default is false in case you don't use built in movement) - bool if W is pressed (true = pressed)
 - A_Down (default is false) - bool if A is pressed (true = pressed)
 - S_Down (default is false) - bool if S is pressed (true = pressed)
 - D_Down (default is false) - bool if D is pressed (true = pressed)
-
-#
-
-### To move camera you can call this method:
-```C#
-SimpleRayCaster.CameraPos(double PosX, double PosY, double DirX, double DirY);
-```
-and pass it those arguments:
-- PosX is double containing the X position of camera
-- PosY is double containing the Y position of camera
-- DirX is double containing the X position towards which camera is rotated
-- DirY is double containing the Y position towards which camera is rotated
+- cameraId - (int) Id of cmera that you want to move
+- moveSpeed (default is 5) - float of movement speed
+- rotSpeed (default is 3) - float of rotation speed
 
 #
 
@@ -161,20 +142,13 @@ SimpleRayCaster.UpdateRayCast();
 
 #
 
-### Get frame from ray caster
-```C#
-rayCaster.GetRawBuffer();
-```
-returning value
-- 3D byte array which you can directly use as RGB texture for OpenGL
-
-#
-
-## **Camera** - early version
+## **Camera** 
 ```C#
 RayCasting.Camera camera = new Camera();
 ```
 you can give those arguments to constructor:
+- ScreenWidth - int of rendering width
+- ScreenHeight - int of rendering height
 - posX - double corresponding to position on X axis
 - posY - double corresponding to position on Y axis
 - dirX - double corresponding of X direction
@@ -182,17 +156,25 @@ you can give those arguments to constructor:
 - planeX - double (default is 0) correspond to
 - planeY - double (default is 0.66) correspond to
 
-You can set the position of the camera with builtin movement, SetCameraPos method or by changing individual public variables
+and it has those public variables:
+- all of the variables that you can put in constructor
+- buffer - 3D byte array which you can directly use as RGB texture for OpenGL
+- ZBuffer - double - DON'T MESS WITH IT!!!
+- Id - int corresponding to count of the cameras
+
+#
 
 ### Setting camera position
+You can set the position of the camera with this method
 ```C#
 camera.SetCameraPos(PosX, PosY, DirX, DirY);
 ```
-and give it tose arguments:
+and give it those arguments:
 - PosX - double corresponding to position on X axis
 - PosY - double corresponding to position on Y axis
 - DirX - double corresponding of X direction
 - DirY - double corresponding of Y direction
+
 #
 
 ## **Map**

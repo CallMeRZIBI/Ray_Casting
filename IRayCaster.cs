@@ -32,7 +32,7 @@ namespace RayCasting
         /// <param name="D_Down"></param>
         /// <param name="moveSpeed"></param>
         /// <param name="rotSpeed"></param>
-        void Move(bool W_down, bool A_down, bool S_down, bool D_down, float moveSpeed = 5.0f, float rotSpeed = 3.0f);
+        void Move(bool W_down, bool A_down, bool S_down, bool D_down, int cameraId, float moveSpeed = 5.0f, float rotSpeed = 3.0f);
 
         /// <summary>
         /// Updates Frame.

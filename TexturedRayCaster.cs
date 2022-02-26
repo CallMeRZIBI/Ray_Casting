@@ -535,59 +535,9 @@ namespace RayCasting
         /// <param name="A_Down"></param>
         /// <param name="S_Down"></param>
         /// <param name="D_Down"></param>
+        /// <param name="cameraId"></param>
         /// <param name="moveSpeed"></param>
         /// <param name="rotSpeed"></param>
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
-        {
-            float radius = 0.25f;
-
-            // speed modifiers
-            _moveSpeed = _deltaTime * moveSpeed; // Constant value is idk
-            _rotSpeed = _deltaTime * rotSpeed; // Constant value is idk
-
-            // Move froward if no wall in front of you
-            if (W_Down)
-            {
-                 // TODO: Figure out how to make circle collider around camera
-                 // This is square collider
-                 if (_cameras[cameraIndex].dirX > 0) { if (_map.map[(int)((_cameras[cameraIndex].posX + _cameras[cameraIndex].dirX * _moveSpeed) + radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX += _cameras[cameraIndex].dirX * _moveSpeed; }
-                 else { if (_map.map[(int)((_cameras[cameraIndex].posX + _cameras[cameraIndex].dirX * _moveSpeed) - radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX += _cameras[cameraIndex].dirX * _moveSpeed; }
-                 if (_cameras[cameraIndex].dirY > 0) { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY + _cameras[cameraIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[cameraIndex].posY += _cameras[cameraIndex].dirY * _moveSpeed; }
-                 else { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY + _cameras[cameraIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[cameraIndex].posY += _cameras[cameraIndex].dirY * _moveSpeed; }
-            }
-            // Move backwards if no wall behind you
-            if (S_Down)
-            {
-                if (_cameras[cameraIndex].dirX > 0) { if (_map.map[(int)((_cameras[cameraIndex].posX - _cameras[cameraIndex].dirX * _moveSpeed) - radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX -= _cameras[cameraIndex].dirX * _moveSpeed; }
-                else { if (_map.map[(int)((_cameras[cameraIndex].posX - _cameras[cameraIndex].dirX * _moveSpeed) + radius), (int)(_cameras[cameraIndex].posY)] == 0) _cameras[cameraIndex].posX -= _cameras[cameraIndex].dirX * _moveSpeed; }
-                if (_cameras[cameraIndex].dirY > 0) { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY - _cameras[cameraIndex].dirY * _moveSpeed) - radius)] == 0) _cameras[cameraIndex].posY -= _cameras[cameraIndex].dirY * _moveSpeed; }
-                else { if (_map.map[(int)(_cameras[cameraIndex].posX), (int)((_cameras[cameraIndex].posY - _cameras[cameraIndex].dirY * _moveSpeed) + radius)] == 0) _cameras[cameraIndex].posY -= _cameras[cameraIndex].dirY * _moveSpeed; }
-            }
-            // Rotate to the right
-            if (D_Down)
-            {
-                // both camera direction and camera plane must be rotated
-                double oldDirX = _cameras[cameraIndex].dirX;
-                _cameras[cameraIndex].dirX = _cameras[cameraIndex].dirX * Math.Cos(-_rotSpeed) - _cameras[cameraIndex].dirY * Math.Sin(-_rotSpeed);
-                _cameras[cameraIndex].dirY = oldDirX * Math.Sin(-_rotSpeed) + _cameras[cameraIndex].dirY * Math.Cos(-_rotSpeed);
-                double oldPlaneX = _cameras[cameraIndex].planeX;
-                _cameras[cameraIndex].planeX = _cameras[cameraIndex].planeX * Math.Cos(-_rotSpeed) - _cameras[cameraIndex].planeY * Math.Sin(-_rotSpeed);
-                _cameras[cameraIndex].planeY = oldPlaneX * Math.Sin(-_rotSpeed) + _cameras[cameraIndex].planeY * Math.Cos(-_rotSpeed);
-            }
-            // Rotate to the left
-            if (A_Down)
-            {
-                // both camera direction and camera plane must be rotated
-                double oldDirX = _cameras[cameraIndex].dirX;
-                _cameras[cameraIndex].dirX = _cameras[cameraIndex].dirX * Math.Cos(_rotSpeed) - _cameras[cameraIndex].dirY * Math.Sin(_rotSpeed);
-                _cameras[cameraIndex].dirY = oldDirX * Math.Sin(_rotSpeed) + _cameras[cameraIndex].dirY * Math.Cos(_rotSpeed);
-                double oldPlaneX = _cameras[cameraIndex].planeX;
-                _cameras[cameraIndex].planeX = _cameras[cameraIndex].planeX * Math.Cos(_rotSpeed) - _cameras[cameraIndex].planeY * Math.Sin(_rotSpeed);
-                _cameras[cameraIndex].planeY = oldPlaneX * Math.Sin(_rotSpeed) + _cameras[cameraIndex].planeY * Math.Cos(_rotSpeed);
-            }
-        }
-
-        // Movement for specific camera
         public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int cameraId, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
             Camera cam = _cameras.Find(item => item.Id == cameraId);

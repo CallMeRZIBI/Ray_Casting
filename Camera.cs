@@ -41,7 +41,9 @@ namespace RayCasting
             dirY = IdirY;
             planeX = IplaneX;
             planeY = IplaneY;
-            Console.WriteLine($"Creating Camera with Id {Id}");
+
+            // Debug
+            Console.WriteLine($"Debug:\nCreating Camera with Id {Id}");
         }
 
         private void createBuffer(int X, int Y)

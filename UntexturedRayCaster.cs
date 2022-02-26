@@ -213,7 +213,7 @@ namespace RayCasting
         /// <param name="D_Down"></param>
         /// <param name="moveSpeed"></param>
         /// <param name="rotSpeed"></param>
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
+        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int cameraId = 0, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
             float radius = 0.25f;
 

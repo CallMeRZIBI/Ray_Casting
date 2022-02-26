@@ -87,7 +87,7 @@ namespace UntexturedRayCastingDemo
                 //uniformProj = GL.GetUniformLocation(shaderProgram.id, "proj");
 
                 SimpleRCaster.CreateMap(map);
-                SimpleRCaster.CreateCamera(posX, posY);
+                SimpleRCaster.CreateCamera(screenWidth, screenHeight, posX, posY);
             };
 
             window.RenderFrame += (FrameEventArgs args) =>
