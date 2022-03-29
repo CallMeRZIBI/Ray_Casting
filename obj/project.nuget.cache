@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "deeT8s87emlsFliIEQ3IqT9gvLjn1565zUXMi4OlPlNDMX5b+bKRwvIcB7t6I04MYNuN7PvtqDNd6NYBUmE6Fw==",
+  "dgSpecHash": "b/6W1apv7Ti9od2tMWYLS77pPwd69vhmnFc638IOXi5plvvN4N5wnBMKqjAXFG3GIDqsFuP1BJYtJx/o7Z15qA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\micha\\source\\repos\\RayCasting\\RayCasting\\RayCasting.csproj",
+  "projectFilePath": "/home/jakub/Projects/C#/Ray_Casting/RayCasting.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\micha\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
-    "C:\\Users\\micha\\.nuget\\packages\\sixlabors.imagesharp\\1.0.4\\sixlabors.imagesharp.1.0.4.nupkg.sha512"
+    "/home/jakub/.nuget/packages/newtonsoft.json/13.0.1/newtonsoft.json.13.0.1.nupkg.sha512",
+    "/home/jakub/.nuget/packages/sixlabors.imagesharp/1.0.4/sixlabors.imagesharp.1.0.4.nupkg.sha512",
+    "/home/jakub/.nuget/packages/microsoft.aspnetcore.app.ref/6.0.2/microsoft.aspnetcore.app.ref.6.0.2.nupkg.sha512"
   ],
   "logs": []
 }

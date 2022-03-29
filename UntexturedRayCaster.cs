@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RayCasting
 {
-    public class UntexturedRayCaster : IRayCaster
+    public class UntexturedRayCaster : BaseRayCaster, IRayCaster
     {
         private readonly int _screenWidth;
         private readonly int _screenHeight;
@@ -18,23 +18,7 @@ namespace RayCasting
         private float[] _vertexData;
         public float LineThickness { get; private set; }
 
-        // Map must have boundings otherwise the ray would just fly away exactly it will get out of the bounds of the array
-        private Map _map;
-
-        private readonly Stopwatch _timer;
-        private double _deltaTime = 0;
-
-        // Getting info about positioning
-        //private double _posX
-        //private double _posY;
-        //private double _dirX;
-        //private double _dirY;
-        //private double _planeX;
-        //private double _planeY;
         private Camera _camera;
-
-        private double _moveSpeed;
-        private double _rotSpeed;
 
         /// <summary>
         /// Constructor of Raycaster, declaring needed values for rendering.
@@ -42,7 +26,7 @@ namespace RayCasting
         /// <param name="screenWidth">Getting width of rendered screen.</param>
         /// <param name="screenHeight">Getting Height of rendered screen.</param>
         /// <param name="rederingScale">Getting scale of rendering. Be careful with values, so try if screenWidth and screenHeight multiplied by renderingScale always outputs full number. Otherwise weird graphical artifacts can happen. Also don't use numbers larger than one.</param>
-        public UntexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1)
+        public UntexturedRayCaster(int screenWidth, int screenHeight, float rederingScale = 1) : base()
         {
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
@@ -52,32 +36,13 @@ namespace RayCasting
             LineThickness = _screenWidth / _renderWidth;
 
             _vertexData = new float[_screenWidth * 12];
-            _timer = new Stopwatch();
-            _deltaTime = 0;
-            _moveSpeed = 0;
-            _rotSpeed = 0;
-        }
-
-        /// <summary>
-        /// Create map with location of camera.
-        /// </summary>
-        /// <param name="map">Map object</param>
-        /// <param name="StartingPosX">Initial position of camera in X axis</param>
-        /// <param name="StartingPosY">Initial position of camera in Y axis</param>
-        /// <param name="dirX">X direction (to which X position you are rotated)</param>
-        /// <param name="dirY">Y direction (to which Y position you are rotated)</param>
-        /// <param name="planeX"></param>
-        /// <param name="planeY"></param>
-        public void CreateMap(Map map)
-        {
-            _map = map;
         }
 
         // Update RayCast calculations with given pos and save vertices in OpenGL format which later can be fromated
         /// <summary>
         /// Updates Frame.
         /// </summary>
-        public void UpdateRayCast()
+        public override void UpdateRayCast()
         {
             for (int x = 0; x < _renderWidth; x++)
             {
@@ -213,7 +178,7 @@ namespace RayCasting
         /// <param name="D_Down"></param>
         /// <param name="moveSpeed"></param>
         /// <param name="rotSpeed"></param>
-        public void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int cameraId = 0, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
+        public override void Move(bool W_Down, bool A_Down, bool S_Down, bool D_Down, int cameraId = 0, float moveSpeed = 5.0f, float rotSpeed = 3.0f)
         {
             float radius = 0.25f;
 
@@ -223,7 +188,7 @@ namespace RayCasting
 
             // Timing for input and FPS counter
             _timer.Stop();
-            CalculateDelatTime();
+            CalculateDeltaTime();
             _timer.Reset();
 
             // Move froward if no wall in front of you
@@ -271,11 +236,6 @@ namespace RayCasting
             _timer.Start();
         }
 
-        public void CalculateDelatTime()
-        {
-            _deltaTime = _timer.Elapsed.TotalSeconds;
-        }
-
         // User can set camera position and direction by himself if default movement is not choosen
         // TODO: Probably create Camera class or struct
         /// <summary>
@@ -303,12 +263,12 @@ namespace RayCasting
             return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
         }
 
-        public void CreateCamera(Camera camera)
+        public override void CreateCamera(Camera camera)
         {
             _camera = camera;
         }
 
-        public void CreateCamera(int ScreenWidth, int ScreenHeight, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
+        public override void CreateCamera(int ScreenWidth, int ScreenHeight, double StartingPosX, double StartingPosY, double dirX = -1, double dirY = 0, double planeX = 0, double planeY = 0.66)
         {
             _camera = new Camera(ScreenWidth, ScreenHeight ,StartingPosX, StartingPosY, dirX, dirY, planeX, planeY);
         }

@@ -38,6 +38,6 @@ namespace RayCasting
         /// Updates Frame.
         /// </summary>
         void UpdateRayCast();
-        void CalculateDelatTime();
+        void CalculateDeltaTime();
     }
 }
